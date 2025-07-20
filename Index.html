@@ -1315,8 +1315,8 @@ function falarComGrave(texto, quandoTerminar = null) {
 
   const utterance = new SpeechSynthesisUtterance(texto);
   utterance.lang = "pt-BR";
-  utterance.pitch = 0.8;   // Levemente grave, ainda natural
-  utterance.rate = 1.25;   // Rápido e fluido, sem parecer robótico
+  utterance.pitch = 0.3;   // Levemente grave, ainda natural
+  utterance.rate = 1.45;   // Rápido e fluido, sem parecer robótico
   utterance.volume = 1.0;
 
   if (quandoTerminar) utterance.onend = quandoTerminar;
@@ -1342,9 +1342,9 @@ function falarComGrave(texto, quandoTerminar = null) {
 
   const ut = new SpeechSynthesisUtterance(texto);
   ut.lang = "pt-BR";
-  ut.pitch = 0.5;   // bem grave
-  ut.rate  = 0.85;  // ligeiramente lento
-  ut.volume = 1.0;
+  ut.pitch = 0.2;
+ut.rate = 1.2;
+ut.volume = 0.6;
 
   if (vozSelecionada) ut.voice = vozSelecionada;
   if (quandoTerminar) ut.onend = quandoTerminar;
