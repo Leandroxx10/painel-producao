@@ -1,0 +1,1966 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Painel Produção</title>
+
+  <!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+
+<!-- Biblioteca para gerar PDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<!-- Biblioteca para capturar o gráfico como imagem -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+
+<!-- Plugin para mostrar números em cima das colunas do gráfico -->
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+
+  <style>
+    /* Cores principais do modo claro */
+    :root {
+      --cor-primaria: #010101;    /* Cinza extremamente escuro perto do preto → usado em botões e textos de destaque */
+      --cor-fundo: #f3f4f6;       /* Cinza clarinho → fundo da página */
+      --cor-texto: #1f2937;       /* Cinza escuro → cor padrão dos textos */
+      --cor-card: #ffffff;        /* Branco → fundo dos cartões de máquinas */
+    }
+
+    /* Modo escuro: altera as cores para versões escuras */
+    body.dark {
+      --cor-fundo: #0f172a;       /* Azul quase preto → fundo escuro */
+      --cor-texto: #e2e8f0;       /* Cinza claro → textos mais visíveis no escuro */
+      --cor-card: #1e293b;        /* Azul escuro → fundo dos cartões */
+    }
+
+    /* Corpo da página com animação suave ao mudar de cor */
+    body {
+      font-family: sans-serif;
+      background: var(--cor-fundo);
+      color: var(--cor-texto);
+      padding: 20px;
+      transition: background 0.4s ease, color 0.4s ease;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+    }
+
+    .top-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+/* INPUT - sempre ocupa linha inteira */
+.top-bar input {
+  height: 42px;
+  padding: 0 12px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* CONTÊINER DOS BOTÕES: 2 por linha */
+.botoes-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+/* ESTILO UNIFICADO DOS BOTÕES */
+.botoes-container button {
+  min-width: 130px;           /* largura mínima fixa */
+  height: 36px;               /* altura um pouco maior que antes */
+  padding: 0 12px;            /* padding lateral para espaçamento interno */
+  border-radius: 6px;
+  border: none;
+  font-size: 0.75rem;         /* menor, mas ainda legível */
+  font-weight: 500;
+  background-color: var(--cor-primaria);
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+  white-space: nowrap;
+  text-align: center;
+}
+
+/* EFEITOS HOVER / ATIVO */
+.botoes-container button:hover {
+  background-color: #1f8bb8;
+  transform: scale(1.02);
+}
+.botoes-container button:active {
+  transform: scale(0.97);
+}
+
+/* BOTÃO ATIVO (EX: críticos) */
+.botoes-container button.ativo {
+  background-color: #c42129e8;
+  color: white;
+}
+
+/* MODO ESCURO */
+body.dark .top-bar input {
+  background-color: #1e293b;
+  color: ;
+  border: 1px solid #475569;
+}
+body.dark .botoes-container button {
+  color: white;
+}
+
+/* DESKTOP - Volta para flex normal */
+@media (min-width: 600px) {
+  .top-bar {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-start;
+  }
+
+  .top-bar input {
+    flex: 1 1 200px;
+    max-width: 250px;
+  }
+
+  .botoes-container {
+    display: flex;
+    gap: 10px;
+  }
+}
+/* Hover/active efeito leve */
+.top-bar button:hover {
+  background-color: #1f8bb8;
+  transform: scale(1.02);
+}
+.top-bar button:active {
+  transform: scale(0.97);
+}
+
+/* Botão Críticos Ativo */
+.top-bar button.ativo {
+  background-color: #c42129e8;
+  color: white;
+}
+
+/* Dark mode input */
+body.dark .top-bar input {
+  background-color: #1e293b;
+  color: #e2e8f0;
+  border: 1px solid #475569;
+}
+
+/* Botões base */
+.top-bar button {
+  background-color: var(--cor-primaria);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 16px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Hover e clique */
+.top-bar button:hover {
+  background-color: #165985;
+  transform: scale(1.02);
+}
+.top-bar button:active {
+  transform: scale(0.98);
+}
+
+/* Botão ativo (usado no botão “críticos”) */
+.top-bar button.ativo {
+  background-color: #ffd240;
+  color: #fff;
+}
+
+/* Modo escuro - mantêm coerência visual */
+body.dark .top-bar button {
+  color: white;
+}
+    /* Quando um botão está ativo (como 'ver críticos'), fica vermelho */
+    .top-bar button.ativo {
+      background: #c42129e8;            /* vermelho */
+      color: #1f2937;                 /* Texto escuro para contraste */
+    }
+
+   /* Estilo base para os cards */
+.maquina {
+  position: relative;
+  overflow: visible; /* Permite que botão e modal fiquem fora do card */
+  background: var(--cor-card);
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+  border-left: 2px solid #397ee5;
+  border-right: 2px solid #397ee5;
+  transition: transform 0.3s ease, background 0.3s ease;
+  width: 100%;
+  box-sizing: border-box;
+  display: block;
+}
+
+/* Hover effect */
+.maquina:hover {
+  transform: scale(1.015);
+}
+
+/* Estado crítico */
+.maquina.critica {
+  color: black;
+  background-color: #ae0e1dba;
+  border-left-color: #cf1122fa;
+  border-right-color: #cf1122fa;
+}
+
+/* Canvas interno */
+.maquina canvas {
+  width: 100% !important;
+  height: 30% !important; /*qualquer coisa deixar em 100px */
+  background-color: white;
+  border-radius: 8px;
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+@media (min-width: 768px) {
+  .maquina {
+    display: inline-block;
+    vertical-align: top;
+    width: calc(100% / 5 - 2rem); /* 4 cards por linha no desktop */
+    margin: 0.5rem;
+    height: auto;
+    font-size: 0.9rem; /* texto menor */
+    padding: 1rem; /* menos espaço interno */
+  }
+
+  .maquina canvas {
+    height: 100px !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  .maquina {
+    width: calc(100% / 5 - 2rem); /* 5 por linha em telas maiores */
+  }
+}
+
+  .maquina canvas {
+    height: 120px !important; /* ou ajuste que caiba no card */
+  }
+}
+    /* Mostrador de totais individuais por máquina */
+    .totalizacao {
+      font-weight: bold;
+      margin-top: 10px;
+      color: var(--cor-primaria);     /* Azul para chamar atenção */
+    }
+
+    /* Botão de modo escuro vai para o lado direito */
+    .darkmode-toggle {
+      margin-left: auto;
+    }
+
+    /* Totais gerais no topo da página */
+    #totais {
+      font-size: 1.1rem;
+      margin-bottom: 20px;
+      font-weight: bold;
+    }
+    
+    /* =========== PARADA DE MÁQUINA (Manutenção) ========== */
+.maquina.parada {
+  opacity: 0.9;
+  position: relative;
+  filter: grayscale(100%) contrast(80%);
+  transition: filter 0.3s ease, opacity 0.3s ease;
+}
+
+/* Selo/Alerta de parada */
+.maquina .aviso-parada {
+  position: absolute;
+  top: 12px;
+  left: 20px;
+  background: linear-gradient(to right, #dc2626, #e11d48); !!importante;
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 0.35rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  z-index: 10;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  animation: blink 1.2s infinite;
+}
+
+/* Animação para destacar a parada */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  60% { opacity: 0.6; }
+}
+
+.checkbox-parada {
+  position: relative;
+  top: 10px;
+  right: 10px;
+  z-index: 10;
+  width: 24px;
+  height: 24px;
+  appearance: none; /* Remove o visual padrão do navegador */
+  background-color: #ffffff;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}  
+
+/* Quando estiver marcado, aparece um check verde */
+.checkbox-parada:checked::after {
+  content: "✔";
+  color: #ff4040e0;  !!importante;
+  font-size: 18px;
+  font-weight: bold;
+}
+}
+
+/* SPINNER 100% CENTRALIZADO EM CELULAR E DESKTOP */
+/* Camada de fundo escurecido + blur */
+#painel {
+  position: relative;
+  min-height: 300px; /* ou mais, se preferir */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.spinner-loader {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.spinner-wrapper {
+  width: 80px;
+  height: 80px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+.spinner-circle {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 6px solid #000;
+  border-top: 6px solid #459ccf;
+  border-radius: 50%;
+  animation: girar 0.4s linear infinite;
+  box-sizing: border-box;
+}
+
+.spinner-letra {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 26px;
+  font-weight: bold;
+  line-height: 1;
+  margin: 0;
+  padding: 0;
+  background: linear-gradient(to right, #2563eb, #93c5fd); /* modo CLARO */
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  pointer-events: none;
+}
+
+.spinner-texto {
+  margin-top: 14px;
+  font-size: 16px;
+  font-weight: bold;
+  white-space: nowrap;
+  animation: fadeIn 1s ease-in-out;
+  background: linear-gradient(to right, #2563eb, #93c5fd); /* modo CLARO */
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.spinner-texto .pontos::after {
+  content: ".";
+  animation: animarPontos 1.2s infinite steps(1);
+}
+
+body.dark .spinner-letra {
+  background: linear-gradient(to right, #2858a0, #397ee5); /* modo ESCURO */
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+body.dark .spinner-texto {
+  background: linear-gradient(to right, #163058, #3472d0); /* modo ESCURO */
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+
+@keyframes animarPontos {
+  0%   { content: "."; }
+  33%  { content: ".."; }
+  66%  { content: "..."; }
+  100% { content: "."; }
+}
+
+@keyframes girar {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ORGANIZAÇÃO DOS CAMPOS DO MODAL */
+.filtro-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 20px;
+  align-items: flex-end;
+}
+
+.filtro-container .grupo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* INPUT BONITINHO */
+.campo-input {
+  background: #ffffffe0;
+  border: 1px solid #4077ffe0;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  color: #8098ff;
+}
+
+/* BOTÃO Azul COM TEXTO BRANCO */
+.botao-Azul {
+  background-color: #25a6dc;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  font-size: 0.95rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+  margin-right: 6px;
+}
+
+.botao-Azul:hover {
+  background-color: #16a34a;
+  transform: scale(1.02);
+}
+
+.botao-Azul:active {
+  transform: scale(0.97);
+}
+
+<!-- Manutenção 2 -->
+.spinner-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(6px);
+  z-index: 9999;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.spinner-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.spinner-wrapper {
+  position: relative;
+  width: 80px;
+  height: 80px;
+}
+
+.spinner-circle {
+  width: 100%;
+  height: 100%;
+  border: 6px solid #000;
+  border-top: 6px solid #459ccf;
+  border-radius: 50%;
+  animation: girar 0.4s linear infinite;
+}
+
+.spinner-letra {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 26px;
+  font-weight: bold;
+  color: #000;
+  pointer-events: none;
+}
+
+.spinner-texto {
+  margin-top: 14px;
+  font-size: 14px;
+  color: white;
+  font-weight: bold;
+  white-space: nowrap;
+  animation: fadeIn 1s ease-in-out;
+}
+
+.spinner-texto .pontos::after {
+  content: ".";
+  animation: animarPontos 1.2s infinite steps(1);
+}
+
+@keyframes animarPontos {
+  0%   { content: "."; }
+  33%  { content: ".."; }
+  66%  { content: "..."; }
+  100% { content: "."; }
+}
+
+@keyframes girar {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* DEIXA O TEXTO DO MODAL EM PRETO */
+#modalHistorico h2,
+#modalHistorico label,
+#modalHistorico select,
+#modalHistorico .campo-input {
+  color: #000000 !important;
+}
+
+.input-prefixo {
+  padding: 4px 6px;
+  margin-left: 6px;
+  font-size: 0.85rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.prefixo {
+  font-weight: normal;
+  color: #2563eb;
+  margin-left: 6px;
+  font-size: 0.9rem;
+}
+
+.btn-prefixo {
+  background: none;
+  border: none;
+  color: #444;
+  cursor: pointer;
+  margin-left: 6px;
+  font-size: 0.85rem;
+}
+
+.info-tag {
+  position: absolute;
+  top: 10px;
+  right: -50px;
+  width: 20px;
+  height: 120px;
+  background-color: #1f2937;
+  color: white;
+  font-size: 0.75rem;
+  text-align: center;
+  border-radius: 8px;
+  cursor: pointer;
+  padding: 4px 2px;
+  box-shadow: 2px 2px 6px rgba(0,0,0,0.3);
+  transition: 0.2s;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.texto-vertical {
+  font-weight: bold;
+  letter-spacing: 1px;
+  line-height: 1.1;
+}
+
+.info-tag:hover {
+  background-color: #374151;
+}
+
+.modal-info {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+.modal-content-info {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 20px 24px;
+  max-width: 500px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  animation: fadeInModal 0.3s ease;
+}
+
+@keyframes fadeInModal {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.modal-content-info input {
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 5px;
+}
+.modal-content-info label {
+  font-weight: bold;
+  display: block;
+  margin-top: 10px;
+}
+
+.modal-content-info {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 20px 24px;
+  max-width: 500px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  animation: fadeInModal 0.3s ease;
+}
+
+@keyframes fadeInModal {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modal-content-info h2 {
+  font-size: 1rem;
+  margin-bottom: 10px;
+}
+
+.modal-content-info input {
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 4px;
+}
+
+.modal-content-info label {
+  font-weight: bold;
+  display: block;
+  font-size: 0.8rem;
+  margin-top: 8px;
+}
+
+.modal-content-info button {
+  background-color: #1f2937;
+  color: white;
+  padding: 6px 10px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  margin-top: 10px;
+}
+
+<button onclick="fecharModalInfo('${m.id}')" style="
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #444;
+  cursor: pointer;
+">❌</button>
+
+.modal-info-lateral {
+  position: absolute;
+  top: 0;
+  left: 105%;
+  width: 260px;
+  background: white;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+  z-index: 99999; /* MUITO ALTO para ficar acima de tudo */
+  display: block;
+}
+
+.modal-central {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(2px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 99999;
+}
+
+.modal-content-central {
+  background: white;
+  padding: 16px;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 500px;
+  max-height: 95vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-sizing: border-box;
+}
+.modal-content-central input {
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 6px;
+  font-size: 0.9rem;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+.modal-content-central label {
+  font-weight: bold;
+  display: block;
+  margin-top: 10px;
+  font-size: 0.85rem;
+}
+
+/* NO CELULAR (TELA PEQUENA), TUDO EMBAIXO */
+@media (max-width: 600px) {
+  .filtro-container {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+.info-wrapper {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 10px;
+  z-index: 99999;  /* 👈 FORÇA a ficar por cima dos cards */
+}
+
+.info-tag {
+  z-index: 99;
+  position: relative;
+  background-color: #1f2937;
+  color: white;
+  font-size: 0.75rem;
+  text-align: center;
+  border-radius: 8px;
+  padding: 4px 2px;
+  cursor: pointer;
+  box-shadow: 2px 2px 6px rgba(0,0,0,0.3);
+  writing-mode: vertical-rl; /* texto em pé */
+  text-orientation: mixed;
+  font-weight: bold;
+}
+.modal-info-lateral {
+  position: absolute;
+  top: 0;
+  left: 110%;
+  width: 260px;
+  background: white;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+  z-index: 999;
+}
+
+.botao-info {
+  background-color: #0f0f0f; /* cinza quase preto */
+  color: white;
+  padding: 8px 16px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+.botao-info:hover {
+  background-color: #1a1a1a;
+  transform: scale(1.03);
+}
+
+.botao-info:active {
+  transform: scale(0.96);
+}
+
+@media (max-width: 767px) {
+  .modal-info-lateral {
+    position: static;
+    width: 100%;
+    margin-top: 10px;
+    box-shadow: none;
+  }
+}
+
+@media (max-width: 768px) {
+  #graficoHistorico {
+    width: 100% !important;
+    height: auto !important;
+  }
+
+  #modalHistorico canvas {
+    max-width: 100% !important;
+    height: auto !important;
+  }
+
+  #modalHistorico > div {
+    width: 95%;
+    max-height: 90vh;
+  }
+}
+
+  </style>
+</head>
+<body>
+    
+    
+  </div>
+</div>
+     
+     
+     
+<div id="conteudo">    
+    
+  <h1>Painel de Produção</h1>
+  
+  <div id="modalInfo" class="modal-info" style="display:none;">
+  <div class="modal-content-info">
+    <h2>Informações do Equipamento</h2>
+    <div id="infoCampos"></div>
+    <button onclick="fecharModalInfo()">Fechar</button>
+  </div>
+</div>
+  
+  <!-- MODAL DE ESCOLHA DE PERFIL -->
+<div id="modalEscolhaPerfil" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:999999; justify-content:center; align-items:center;">
+  <div style="background:white; padding:20px; border-radius:12px; max-width:90%; width:400px; text-align:center;">
+    <h2 style="margin-bottom:20px;">Como deseja acessar o chat?</h2>
+
+    <div style="display:flex; flex-direction:column; gap:12px;">
+      <button onclick="entrarComoVisualizador()" style="padding:12px; background:#3b82f6; color:white; font-size:1rem; border:none; border-radius:8px;">🔍 Visualizador</button>
+      <button onclick="mostrarLogin()" style="padding:12px; background:#16a34a; color:white; font-size:1rem; border:none; border-radius:8px;">🔐 Fazer Login</button>
+    </div>
+
+    <!-- Login escondido -->
+    <div id="formLogin" style="margin-top:20px; display:none;">
+      <input id="emailLogin" type="email" placeholder="Email" style="width:100%; padding:10px; margin-bottom:8px; border-radius:6px; border:1px solid #ccc;" />
+      <input id="senhaLogin" type="password" placeholder="Senha" style="width:100%; padding:10px; margin-bottom:8px; border-radius:6px; border:1px solid #ccc;" />
+      <button onclick="fazerLoginFirebase()" style="width:100%; padding:10px; background:#000; color:white; border:none; border-radius:6px;">🚪 Entrar</button>
+    </div>
+  </div>
+</div>
+  
+  <!-- MODAL DE CHAT AO VIVO -->
+<div id="modalChat" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:99999; justify-content:center; align-items:center;">
+  <div style="background:white; padding:20px; border-radius:10px; width:90%; max-width:600px; max-height:90%; overflow:auto; position:relative;">
+    <button onclick="fecharChat()" style="position:absolute; top:10px; right:10px;">❌</button>
+    
+    <h2>Chat ao Vivo</h2>
+<div id="infoUsuario" style="font-size: 0.9rem; margin-bottom: 10px;">
+  Logado como: <span id="emailUsuario" style="font-weight:bold;"></span>
+  <button onclick="fazerLogout()" style="margin-left:10px; padding:6px 10px; background:#dc2626; color:white; border:none; border-radius:6px;">Sair</button>
+</div>
+
+    <div id="containerMensagens" style="max-height: 200px; overflow-y: auto;">
+  <div style="border: 1px solid #ccc; border-radius: 6px; overflow: hidden;">
+  <!-- Cabeçalho fixo -->
+  <table style="width:100%; border-collapse: collapse;">
+    <thead style="background:#1f2937; color:white; position: sticky; top: 0; z-index: 1;">
+  <tr>
+    <th style="padding:8px; background:#1f2937;">Data</th>
+    <th style="padding:8px; background:#1f2937;">Horário</th>
+    <th style="padding:8px; background:#1f2937;">Remetente</th>
+    <th style="padding:8px; background:#1f2937;">Mensagem</th>
+  </tr>
+</thead>
+  </table>
+
+  <!-- Corpo com rolagem -->
+  <div id="containerMensagens" style="max-height: 200px; overflow-y: auto;">
+    <table style="width:100%; border-collapse: collapse;">
+      <tbody id="tabelaMensagens"></tbody>
+    </table>
+  </div>
+</div>
+</div>
+
+    <div style="display:flex; gap:10px; margin-top:10px;">
+      <input id="mensagemChat" placeholder="Digite uma mensagem..." style="flex:1; padding:10px; border-radius:6px; border:1px solid #ccc;" />
+      <button onclick="enviarMensagem()" style="padding:10px 20px; background:black; color:white; border:none; border-radius:6px;">Enviar</button>
+    </div>
+  </div>
+</div>
+
+
+  <div class="top-bar">
+  <input type="text" id="filtro" placeholder="Filtrar máquinas..." oninput="filtrar()" />
+
+  <div class="botoes-container">
+    <button onclick="alternarCriticos()"> Ver Pouca Reserva</button>
+    <button class="darkmode-toggle" onclick="alternarDarkMode()">Modo Escuro</button>
+    <button onclick="alternarFullscreen()">🖥️ Tela Cheia</button>
+    <button onclick="lerAlertasCriticos()">🔊 Ouvir Críticos</button>
+  </div>
+</div>
+  <div id="totais"></div>
+  <div id="painel">
+      
+  <div id="spinner" class="spinner-loader">
+    <div class="spinner-wrapper">
+      <div class="spinner-circle"></div>
+      <div class="spinner-letra">MMC</div>
+    </div>
+    <div class="spinner-texto">
+      Manutenção de Moldes Corretiva<span class="pontos"></span>
+    </div>
+  </div>
+  
+</div>
+</div>
+
+  <!-- MODAL DE HISTÓRICO -->
+  <div id="modalHistorico" style="display:none;
+   position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background-color:rgba(0,0,0,0.7);
+    z-index:100000;
+    justify-content:center;    
+    align-items:center;"">
+        <div style="background:white; padding:20px; border-radius:10px; max-width:90%; max-height:100%; overflow:auto; position:relative;">
+      <button onclick="fecharModal()" style="position:absolute; top:10px; right:10px;">❌</button>
+      <h2 id="tituloModal"></h2>
+      <div class="filtro-container">
+  <div class="grupo">
+    <label for="diaSelecionado">📅 Dia:</label>
+    <input type="date" id="diaSelecionado" class="campo-input" />
+  </div>
+
+  <div class="grupo">
+    <label for="horaInicio">⏰ Hora início:</label>
+    <input type="time" id="horaInicio" value="01:00" class="campo-input" />
+  </div>
+
+  <div class="grupo">
+    <label for="horaFim">⏳ Hora fim:</label>
+    <input type="time" id="horaFim" value="23:00" class="campo-input" />
+  </div>
+
+  <div class="grupo">
+    <button onclick="filtrarHistoricoHora()" class="botao-Azul">🔍 Filtrar</button>
+    <button onclick="baixarPDF()" class="botao-Azul">📄 PDF</button>
+  </div>
+</div>
+      <canvas id="graficoHistorico" width="140" height="200"></canvas>
+
+<div class="grupo">
+  <label for="tipoGrafico">📐 Tipo de Gráfico:</label>
+  <select id="tipoGrafico" class="campo-input">
+    <option value="bar">📊 Colunas</option>
+    <option value="line">📈 Linha</option>
+  </select>
+</div>
+<div class="grupo">
+  <label for="filtroTipoDado">📦 Visualizar:</label>
+  <select id="filtroTipoDado" class="campo-input">
+    <option value="ambos">🔀 Total </option>
+    <option value="maquina">👷 Somente na Produção </option>
+    <option value="reserva">📦 Somente na Corretiva</option>
+  </select>
+</div>
+
+    </div>
+  </div>
+
+</body>
+  <script>
+// Config Firebase principal (controle produção)
+const firebaseConfigPrincipal = {
+  apiKey: "AIzaSyBPgWEv0f8fK25teN6K2S3VGO63s_YRcOA",
+  authDomain: "controleproducao2025-42272.firebaseapp.com",
+  databaseURL: "https://controleproducao2025-42272-default-rtdb.firebaseio.com/",
+  projectId: "controleproducao2025-42272",
+  storageBucket: "controleproducao2025-42272.appspot.com",
+  messagingSenderId: "524681663678",
+  appId: "1:524681663678:web:eb4184a410f1e1893bbaef"
+};
+
+firebase.initializeApp(firebaseConfigPrincipal);
+
+// Config Firebase histórico (do seu projeto histórico)
+const firebaseConfigHistorico = {
+  apiKey: "AIzaSyCQbGBh079kVZcQVkCuFG9APU24PFl7Q0A",
+  authDomain: "controleproducao2025-42272.firebaseapp.com",
+  databaseURL: "https://historico-8dbdd-default-rtdb.firebaseio.com/",
+  projectId: "controleproducao2025-42272",
+  storageBucket: "controleproducao2025-42272.appspot.com",
+  messagingSenderId: "524681663678",
+  appId: "1:524681663678:web:eb4184a410f1e1893bbaef"
+};
+
+// Inicializa Firebase principal
+const appPrincipal = firebase.initializeApp(firebaseConfigPrincipal, "principal");
+const db = appPrincipal.database();
+
+// Inicializa Firebase histórico
+const appHistorico = firebase.initializeApp(firebaseConfigHistorico, "historico");
+const dbHistorico = appHistorico.database();
+
+let dadosMaquinas = {};
+let mostrarCriticos = false;
+const charts = {};
+Chart.register(ChartDataLabels);
+const ultimosDados = {};
+let graficoLinha;
+let historicoBruto = {};
+
+
+//Cores do grafico do card
+function getCor(valor) {
+  if (valor >= 6) return "#22c55e";
+  if (valor >= 4) return "#facc15";
+  return "#ef4444";
+}
+
+function criarPainel(dados) {
+  const painel = document.getElementById("painel");
+  painel.innerHTML = "";
+  const filtro = document.getElementById("filtro").value.toLowerCase();
+  let totalMolde = 0, totalBlank = 0;
+
+  let maquinas = Object.entries(dados).map(([id, m]) => {
+    const molde = Math.max(m.molde || 0, 0);
+    const moldeR = Math.max(m.molde_reserva || 0, 0);
+    const blank = Math.max(m.blank || 0, 0);
+    const blankR = Math.max(m.blank_reserva || 0, 0);
+    const totalM = molde + moldeR;
+    const totalB = blank + blankR;
+
+    return {
+  id,
+  molde,
+  moldeR,
+  blank,
+  blankR,
+  totalM,
+  totalB,
+  isCritico: totalM <= 5 || totalB <= 5,
+  parada: m.parada || false,
+  prefixo: m.prefixo || ""
+};
+  });
+  
+  
+
+  if (filtro) {
+    maquinas = maquinas.filter(m => m.id.toLowerCase().includes(filtro));
+  }
+
+  if (mostrarCriticos) {
+    maquinas = maquinas.filter(m => m.isCritico)
+      .sort((a, b) => a.totalB - b.totalB || a.totalM - b.totalM);
+  }
+
+  for (const m of maquinas) {
+    totalMolde += m.totalM;
+    totalBlank += m.totalB;
+    const div = document.createElement("div");
+    div.className = "maquina";
+    if (m.isCritico && mostrarCriticos) div.classList.add("critica");
+    if (m.parada) div.classList.add("parada");
+    if (!m.parada) {
+  div.addEventListener("click", function(event) {
+    // Só abre o gráfico se o clique não for em um botão
+    if (event.target.tagName !== "BUTTON") {
+      abrirModalHistorico(m.id);
+    }
+  });
+}
+
+    div.innerHTML = `
+  ${m.parada ? '<div class="aviso-parada">🔧 Parada para manutenção</div>' : ''}
+  <input type="checkbox" class="checkbox-parada" ${m.parada ? 'checked' : ''} 
+    onchange="alternarParada('${m.id}', this.checked)" onclick="event.stopPropagation()" />
+        
+  <h3 onclick="event.stopPropagation()">Máquina ${m.id}</h3>
+
+  <p>Molde: ${m.molde} | Reserva: ${m.moldeR}</p>
+  <p>Blank: ${m.blank} | Reserva: ${m.blankR}</p>
+  <p class="totalizacao">Total Moldes: ${m.totalM} | Total Blanks: ${m.totalB}</p>
+  <canvas id="grafico-${m.id}"></canvas>
+
+  <div style="text-align: center; margin-top: 10px;">
+    <button type="button" class="botao-info" onclick="event.stopPropagation(); abrirModalInformacoesMaquina('${m.id}')">
+  ℹ️ Informações
+</button>
+  </div>
+`;
+  
+    painel.appendChild(div);
+
+    const ctx = document.getElementById(`grafico-${m.id}`).getContext("2d");
+    if (charts[m.id]) charts[m.id].destroy();
+
+    charts[m.id] = new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels: ["Molde", "Blank"],
+        datasets: [
+  {
+    label: "Total",
+    data: [m.totalM, m.totalB],
+    backgroundColor: [getCor(m.totalM), getCor(m.totalB)]
+  }
+]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { stacked: true, grid: { display: false } },
+          y: { beginAtZero: true, grid: { color: "#e5e7eb" } }
+        }
+      }
+    });
+  }
+
+  document.getElementById("totais").innerText =
+    `Total geral de Moldes: ${totalMolde} | Total geral de Blanks: ${totalBlank}`;
+}
+
+function alternarCriticos() {
+  mostrarCriticos = !mostrarCriticos;
+  const botao = document.querySelector(".top-bar button");
+  botao.classList.toggle("ativo", mostrarCriticos);
+  botao.textContent = mostrarCriticos ? "✅  Pouca reserva" : "Todas Máquinas ";
+  criarPainel(dadosMaquinas);
+}
+
+function filtrar() {
+  criarPainel(dadosMaquinas);
+}
+
+function alternarDarkMode() {
+  const body = document.body;
+  const botao = document.querySelector(".darkmode-toggle");
+  const modoAtivo = body.classList.toggle("dark");
+  localStorage.setItem("modo_escuro", modoAtivo ? "1" : "0");
+  botao.textContent = modoAtivo ? " Modo Claro" : " Modo Escuro";
+}
+
+function abrirModalHistorico(idMaquina) {
+  const modal = document.getElementById("modalHistorico");
+  const titulo = document.getElementById("tituloModal");
+
+  modal.style.display = "flex";
+  titulo.innerText = "Histórico - Máquina " + idMaquina;
+
+  // Aguarda o modal abrir (para garantir que o canvas esteja visível)
+  setTimeout(() => {
+    const container = document.querySelector("#modalHistorico div");
+
+    // Remove canvas antigo
+    const antigo = document.getElementById("graficoHistorico");
+    if (antigo) antigo.remove();
+
+    // Cria novo canvas
+    const novoCanvas = document.createElement("canvas");
+    novoCanvas.id = "graficoHistorico";
+    novoCanvas.width = 750;
+    novoCanvas.height = 320;
+    container.appendChild(novoCanvas);
+
+    const ctx = novoCanvas.getContext("2d");
+
+    if (graficoLinha) graficoLinha.destroy();
+
+    dbHistorico.ref(`${idMaquina}`).once("value")
+      .then(snapshot => {
+        const dados = snapshot.val();
+
+        if (!dados) {
+          alert("❌ Sem dados históricos para esta máquina.");
+          return;
+        }
+
+        historicoBruto = dados;
+        // Define a data de hoje no campo de filtro de data
+        
+const agora = new Date();
+const ano = agora.getFullYear();
+const mes = String(agora.getMonth() + 1).padStart(2, "0");
+const dia = String(agora.getDate()).padStart(2, "0");
+const hoje = `${ano}-${mes}-${dia}`;
+document.getElementById("diaSelecionado").value = hoje;
+
+filtrarHistoricoHora(); // já aplica o filtro automaticamente
+
+        
+      })
+      .catch(error => {
+        alert("❌ Erro ao carregar histórico: " + error.message);
+      });
+
+  }, 300);
+}
+
+function fecharModal() {
+  document.getElementById("modalHistorico").style.display = "none";
+}
+
+function alternarFullscreen() {
+  const docEl = document.documentElement;
+  if (!document.fullscreenElement) {
+    if (docEl.requestFullscreen) docEl.requestFullscreen();
+    else if (docEl.webkitRequestFullscreen) docEl.webkitRequestFullscreen();
+    else if (docEl.msRequestFullscreen) docEl.msRequestFullscreen();
+  } else {
+    if (document.exitFullscreen) document.exitFullscreen();
+    else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+    else if (document.msExitFullscreen) document.msExitFullscreen();
+  }
+}
+
+function alternarParada(idMaquina, parado) {
+  db.ref("maquinas/" + idMaquina + "/parada").set(parado ? true : null);
+}
+
+function falarComGrave(texto, quandoTerminar = null) {
+  if (!('speechSynthesis' in window) || !('SpeechSynthesisUtterance' in window)) {
+    console.warn("API de fala não suportada neste ambiente.");
+    return;
+  }
+
+  const utterance = new SpeechSynthesisUtterance(texto);
+  utterance.lang = "pt-BR";
+  utterance.pitch = 0.3;  // voz grave
+  utterance.rate = 0.22;  // fala levemente lenta
+  utterance.volume = 1.0;
+
+  if (quandoTerminar) utterance.onend = quandoTerminar;
+
+  speechSynthesis.cancel(); // Cancela qualquer fala anterior
+  speechSynthesis.speak(utterance);
+}
+
+function lerAlertasCriticos() {
+  if (!dadosMaquinas || Object.keys(dadosMaquinas).length === 0) {
+    falarComGrave("Os dados ainda não foram carregados.");
+    return;
+  }
+
+  if (!('speechSynthesis' in window)) {
+    alert("❌ Navegador não suporta leitura por voz.");
+    return;
+  }
+
+  speechSynthesis.cancel();
+
+  let alertas = [];
+  Object.entries(dadosMaquinas).forEach(([id, m]) => {
+    const moldeTotal = (m.molde || 0) + (m.molde_reserva || 0);
+    const blankTotal = (m.blank || 0) + (m.blank_reserva || 0);
+    
+    // 💥 AJUSTADO para considerar crítica abaixo de 6
+    if (moldeTotal < 6) alertas.push(`Máquina ${id} com apenas ${moldeTotal} moldes.`);
+    if (blankTotal < 6) alertas.push(`Máquina ${id} com apenas ${blankTotal} blanks.`);
+  });
+
+  if (alertas.length === 0) {
+    falarComGrave("Nenhuma máquina está em estado crítico.");
+    return;
+  }
+
+  let index = 0;
+  function falarProximo() {
+    if (index >= alertas.length) return;
+
+    const texto = alertas[index];
+    index++;
+
+    const utterance = new SpeechSynthesisUtterance(texto);
+    utterance.lang = "pt-BR";
+    utterance.pitch = 0.4; // voz grave
+    utterance.rate = 0.12;
+    speechSynthesis.speak(utterance);
+    utterance.onend = falarProximo;
+  }
+
+  falarProximo();
+}
+
+function filtrarHistoricoHora() {
+  const horaInicio = document.getElementById("horaInicio").value;
+  const horaFim = document.getElementById("horaFim").value;
+  const diaSelecionado = document.getElementById("diaSelecionado").value;
+
+  if (!horaInicio || !horaFim || !diaSelecionado) {
+    alert("⛔ Preencha o dia, hora início e hora fim!");
+    return;
+  }
+
+  if (!historicoBruto || Object.keys(historicoBruto).length === 0) {
+    alert("❌ Nenhum dado carregado para filtrar.");
+    return;
+  }
+  
+  const dadosAgrupados = {};
+
+  const container = document.getElementById("graficoHistorico").parentElement;
+
+// Remover o canvas antigo
+const canvasAntigo = document.getElementById("graficoHistorico");
+if (canvasAntigo) canvasAntigo.remove();
+
+// Criar um novo canvas
+const novoCanvas = document.createElement("canvas");
+novoCanvas.id = "graficoHistorico";
+novoCanvas.style.width = "100%";
+novoCanvas.style.height = "auto";
+container.appendChild(novoCanvas);
+
+const ctx = novoCanvas.getContext("2d");
+
+
+
+// Agrupa os dados por hora, considerando o horário e (opcionalmente) o dia escolhido
+Object.entries(historicoBruto).forEach(([timestamp, valores]) => {
+  const [data, horaCompleta] = timestamp.split(" ");
+  const hora = horaCompleta.slice(0, 2); // Ex: "08"
+
+  // Se uma data foi escolhida, filtra por ela. Se estiver em branco, mostra tudo.
+  if (diaSelecionado && data !== diaSelecionado) return;
+
+  if (horaCompleta >= horaInicio && horaCompleta <= horaFim) {
+    if (!dadosAgrupados[hora]) {
+      dadosAgrupados[hora] = {
+        molde: 0,
+        molde_reserva: 0,
+        blank: 0,
+        blank_reserva: 0
+      };
+    }
+
+    dadosAgrupados[hora].molde += Number(valores.molde || 0);
+    dadosAgrupados[hora].molde_reserva += Number(valores.molde_reserva || 0);
+    dadosAgrupados[hora].blank += Number(valores.blank || 0);
+    dadosAgrupados[hora].blank_reserva += Number(valores.blank_reserva || 0);
+  }
+});
+
+// Monta os dados para o gráfico
+const labels = Object.keys(dadosAgrupados).map(h => `${h}:00`);
+const tipoSelecionado = document.getElementById("filtroTipoDado").value;
+
+const moldes = Object.values(dadosAgrupados).map(v => {
+  if (tipoSelecionado === "maquina") return v.molde;
+  if (tipoSelecionado === "reserva") return v.molde_reserva;
+  return v.molde + v.molde_reserva;
+});
+
+const blanks = Object.values(dadosAgrupados).map(v => {
+  if (tipoSelecionado === "maquina") return v.blank;
+  if (tipoSelecionado === "reserva") return v.blank_reserva;
+  return v.blank + v.blank_reserva;
+});
+
+if (labels.length === 0) {
+  alert("❌ Nenhum dado no intervalo escolhido. Exibindo dados completos.");
+
+  const todasLabels = Object.keys(historicoBruto).map(l => l.split(" ")[1]);
+  const moldesTodos = Object.values(historicoBruto).map(v => Number(v.molde || 0) + Number(v.molde_reserva || 0));
+  const blanksTodos = Object.values(historicoBruto).map(v => Number(v.blank || 0) + Number(v.blank_reserva || 0));
+
+  const tipoGraficoSelecionado = document.getElementById("tipoGrafico").value;
+
+graficoLinha = new Chart(ctx, {
+  type: tipoGraficoSelecionado,  // vai usar "bar" ou "line"
+    data: {
+      labels: todasLabels,
+      datasets: [
+        {
+          label: "Total Moldes",
+          data: moldesTodos,
+          backgroundColor: "#22c55e"
+        },
+        {
+          label: "Total Blanks",
+          data: blanksTodos,
+          backgroundColor: "#3b82f6"
+        }
+      ]
+    },
+    options: {
+  responsive: false,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: { display: true },
+    tooltip: { enabled: true },
+    datalabels: {
+      anchor: 'end',
+      align: 'top',
+      color: '#000',
+      font: { weight: 'bold' },
+      formatter: Math.round
+    }
+  },
+  scales: {
+    x: { title: { display: true, text: "Hora" } },
+    y: { beginAtZero: true }
+  }
+}
+  });
+  return;
+}
+
+const tipoGraficoSelecionado = document.getElementById("tipoGrafico").value;
+graficoLinha = new Chart(ctx, {
+  type: tipoGraficoSelecionado,
+  data: {
+    labels: labels,
+    datasets: [
+  {
+    label: "Total Moldes",
+    data: moldes,
+    borderColor: "#29b8f4",
+    backgroundColor: "#66aef4",
+    tension: 0.3,
+    fill: false
+  },
+  {
+    label: "Total Blanks",
+    data: blanks,
+    borderColor: "#0f111d",
+    backgroundColor: "#272727",
+    tension: 0.3,
+    fill: false
+  }
+]
+  },
+  options: {
+    responsive:false,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: true } },
+    scales: {
+      x: { title: { display: true, text: "Hora" } },
+      y: { beginAtZero: true }
+    }
+  }
+});
+}
+document.addEventListener("DOMContentLoaded", () => {
+
+document.addEventListener("DOMContentLoaded", () => {
+
+});
+
+  const modoSalvo = localStorage.getItem("modo_escuro");
+  if (modoSalvo === "1") {
+    document.body.classList.add("dark");
+    document.querySelector(".darkmode-toggle").textContent = " Modo Claro";
+  }
+
+  let ultimaFala = 0;
+  const intervaloFala = 30 * 60 * 1000;
+
+  let ultimaHoraRegistrada = ""; // Para controlar se já salvou naquela hora
+
+db.ref("maquinas").on("value", snapshot => {
+  const dados = snapshot.val();
+  if (!dados) {
+    alert("❌ Nenhum dado encontrado no nó 'maquinas'.");
+    return;
+  }
+
+  dadosMaquinas = dados;
+  criarPainel(dados);
+  const spinner =
+   document.getElementById("spinner");
+if (spinner) spinner.style.display = "none";
+
+  // ====== REGISTRO NO HISTÓRICO (1 VEZ POR HORA) ======
+  const agora = new Date();
+
+  // Formata para: "2025-07-10 13:00"
+  const dataFormatada = agora.toLocaleDateString("pt-BR").split("/").reverse().join("-");
+  const horaCheia = agora.getHours().toString().padStart(2, "0") + ":00";
+  const timestamp = `${dataFormatada} ${horaCheia}`;
+
+  // Verifica se já salvou nesta hora
+  if (timestamp === ultimaHoraRegistrada) return;
+
+  // Atualiza controle
+  ultimaHoraRegistrada = timestamp;
+
+  // Salva para cada máquina
+  Object.entries(dados).forEach(([idMaquina, dadosMaquina]) => {
+    const entradaHistorico = {
+      molde: dadosMaquina.molde || 0,
+      molde_reserva: dadosMaquina.molde_reserva || 0,
+      blank: dadosMaquina.blank || 0,
+      blank_reserva: dadosMaquina.blank_reserva || 0
+    };
+
+    dbHistorico.ref(`${idMaquina}/${timestamp}`).set(entradaHistorico);
+  });
+});
+});
+
+async function baixarPDF() {
+  const canvasEl = document.getElementById("graficoHistorico");
+  if (!canvasEl) {
+    alert("❌ Nenhum gráfico encontrado para exportar.");
+    return;
+  }
+
+  const canvasImagem = await html2canvas(canvasEl, {
+    backgroundColor: "#ffffff",
+    scale: 5  // 📌 aumenta a qualidade 3x
+  });
+
+  const imgData = canvasImagem.toDataURL("image/png");
+
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF();
+
+  pdf.setFontSize(16);
+  pdf.text("Histórico de Produção", 15, 20);
+
+  const largura = 180;
+  const altura = (canvasEl.height / canvasEl.width) * largura;
+  pdf.addImage(imgData, "PNG", 15, 30, largura, altura);
+
+  const pdfURL = pdf.output("bloburl");
+  window.open(pdfURL, "_blank"); // Abre em nova aba
+}
+
+// Quando o usuário mudar o tipo de gráfico, atualiza o gráfico automaticamente
+document.getElementById("tipoGrafico").addEventListener("change", () => {
+  filtrarHistoricoHora();
+});
+document.getElementById("filtroTipoDado").addEventListener("change", () => {
+  filtrarHistoricoHora();
+});
+
+// === BOTÃO DE VOZ FUNCIONAL NO CELULAR COM CHROME ===
+const botaoMicrofone = document.createElement("button");
+botaoMicrofone.textContent = "🎤 Falar com Painel";
+botaoMicrofone.style.position = "fixed";
+botaoMicrofone.style.bottom = "20px";
+botaoMicrofone.style.right = "20px";
+botaoMicrofone.style.zIndex = "99999";
+botaoMicrofone.style.padding = "12px 16px";
+botaoMicrofone.style.backgroundColor = "#1f8bb8";
+botaoMicrofone.style.color = "white";
+botaoMicrofone.style.border = "none";
+botaoMicrofone.style.borderRadius = "8px";
+botaoMicrofone.style.boxShadow = "0 4px 8px rgba(0,0,0,0.3)";
+botaoMicrofone.style.fontWeight = "bold";
+botaoMicrofone.style.fontSize = "0.9rem";
+botaoMicrofone.onclick = ouvirComando;
+
+document.body.appendChild(botaoMicrofone);
+// Botão flutuante do Chat ao Vivo
+const botaoChat = document.createElement("button");
+botaoChat.textContent = "💬 Chat ao Vivo";
+botaoChat.style.position = "fixed";
+botaoChat.style.bottom = "80px";
+botaoChat.style.right = "20px";
+botaoChat.style.zIndex = "99999";
+botaoChat.style.padding = "12px 16px";
+botaoChat.style.backgroundColor = "#0f172a";
+botaoChat.style.color = "white";
+botaoChat.style.border = "none";
+botaoChat.style.borderRadius = "8px";
+botaoChat.style.boxShadow = "0 4px 8px rgba(0,0,0,0.3)";
+botaoChat.style.fontWeight = "bold";
+botaoChat.style.fontSize = "0.9rem";
+botaoChat.onclick = abrirChat;
+document.body.appendChild(botaoChat);
+
+function ouvirComando() {
+  if (!('webkitSpeechRecognition' in window)) {
+    alert("❌ Seu navegador não suporta voz. Use o Google Chrome no Android.");
+    return;
+  }
+
+  const reconhecimento = new webkitSpeechRecognition();
+  reconhecimento.lang = "pt-BR";
+  reconhecimento.interimResults = false;
+
+  reconhecimento.onresult = function(event) {
+    const comando = event.results[0][0].transcript.toLowerCase();
+    console.log("🎙️ Você disse:", comando);
+    processarComando(comando);
+  };
+
+  reconhecimento.onerror = function(event) {
+    alert("❌ Erro ao usar o microfone: " + event.error + "\nAtive o microfone nas permissões do Chrome.");
+  };
+
+  reconhecimento.start();
+}
+
+function processarComando(fala) {
+  const comando = fala.toLowerCase();
+
+  // 🔐 Verifica se dados estão carregados
+  if (!dadosMaquinas || Object.keys(dadosMaquinas).length === 0) {
+    falarComGrave("Os dados ainda não foram carregados. Aguarde mais um momento.");
+    return;
+  }
+
+  // 🎯 Comandos gerais sem máquina específica
+  if (comando.includes("modo escuro")) {
+    if (!document.body.classList.contains("dark")) {
+      alternarDarkMode();
+      falarComGrave("Modo escuro ativado.");
+    } else {
+      falarComGrave("Modo escuro já está ativado.");
+    }
+    return;
+  }
+
+  if (comando.includes("ver críticos") || comando.includes("pouca reserva")) {
+    alternarCriticos();
+    falarComGrave("Mostrando máquinas com pouca reserva.");
+    return;
+  }
+
+  if (comando.includes("tela cheia")) {
+    alternarFullscreen();
+    falarComGrave("Tela cheia ativada.");
+    return;
+  }
+
+  if (comando.includes("abrir chat") || comando.includes("falar com operador")) {
+    abrirChat();
+    falarComGrave("Abrindo chat ao vivo.");
+    return;
+  }
+
+  if (comando.includes("status de todas")) {
+    lerAlertasCriticos();
+    return;
+  }
+
+  // 📌 Acha a máquina mencionada
+  const idEncontrado = Object.keys(dadosMaquinas).find(id =>
+    comando.includes(id.toLowerCase()) || comando.includes("máquina " + id.toLowerCase())
+  );
+
+  if (!idEncontrado) {
+    falarComGrave("Não encontrei essa máquina. Diga por exemplo: gráfico da máquina B3.");
+    return;
+  }
+
+  // 📊 Ver se o comando é sobre gráfico
+  const frasesGrafico = [
+    "abrir gráfico", "mostrar gráfico", "ver gráfico",
+    "gráfico da", "ver o gráfico", "quero ver o gráfico",
+    "abrir o gráfico", "mostrar o gráfico"
+  ];
+
+  const querGrafico = frasesGrafico.some(frase => comando.includes(frase));
+
+  if (querGrafico) {
+    abrirModalHistorico(idEncontrado);
+    falarComGrave(`Abrindo gráfico da máquina ${idEncontrado}.`);
+    return;
+  }
+
+  // 🧠 Caso contrário, apenas fala o status
+  const m = dadosMaquinas[idEncontrado];
+  const molde = m.molde || 0;
+  const moldeR = m.molde_reserva || 0;
+  const blank = m.blank || 0;
+  const blankR = m.blank_reserva || 0;
+  const totalM = molde + moldeR;
+  const totalB = blank + blankR;
+
+  let resposta = `Máquina ${idEncontrado}. Moldes: ${molde} mais ${moldeR} de reserva. Blanks: ${blank} mais ${blankR} de reserva.`;
+  if (m.parada) resposta += " Atenção: esta máquina está parada para manutenção.";
+
+  falarComGrave(resposta);
+}
+function abrirChat() {
+  appHistorico.auth().onAuthStateChanged((user) => {
+    if (user) {
+      document.getElementById("emailUsuario").textContent = user.email;
+      document.getElementById("modalChat").style.display = "flex";
+      carregarMensagens();
+    } else {
+      document.getElementById("modalEscolhaPerfil").style.display = "flex";
+    }
+  });
+}
+document.addEventListener("DOMContentLoaded", () => {
+  
+
+  // Fecha o modal
+  window.fecharChat = function () {
+    const modal = document.getElementById("modalChat");
+    if (modal) {
+      modal.style.display = "none";
+    }
+  };
+
+  // Carrega mensagens do Firebase
+  window.carregarMensagens = function () {
+    const corpo = document.getElementById("tabelaMensagens");
+    if (!corpo) return;
+    corpo.innerHTML = "<tr><td colspan='4' style='text-align:center;'>⏳ Carregando mensagens...</td></tr>";
+
+    db.ref("chat").limitToLast(50).once("value", snapshot => {
+      const mensagens = snapshot.val();
+      corpo.innerHTML = "";
+
+      if (!mensagens) {
+        corpo.innerHTML = "<tr><td colspan='4' style='text-align:center;'>📭 Nenhuma mensagem ainda.</td></tr>";
+        return;
+      }
+
+      Object.entries(mensagens).forEach(([id, m]) => {
+        const dataHora = new Date(m.timestamp || 0);
+        const data = dataHora.toLocaleDateString("pt-BR");
+        const hora = dataHora.toLocaleTimeString("pt-BR", { hour: '2-digit', minute: '2-digit' });
+
+        const linha = `
+  <tr>
+    <td style="padding:6px; color:black;">${data}</td>
+    <td style="padding:6px; color:black;">${hora}</td>
+    <td style="padding:6px; color:black;">${m.remetente || "Usuário"}</td>
+    <td style="padding:6px; color:black;">${m.mensagem}</td>
+  </tr>
+`;
+        corpo.innerHTML += linha;
+      });
+    });
+  };
+
+  // Envia mensagem para o Firebase
+  window.enviarMensagem = function () {
+    const input = document.getElementById("mensagemChat");
+    const texto = input.value.trim();
+    const user = appHistorico.auth().currentUser; // ✅ CERTO
+
+    if (!user) {
+      alert("⚠️ Faça login para enviar mensagens.");
+      return;
+    }
+
+    if (!texto) return;
+
+    const novaMensagem = {
+      mensagem: texto,
+      remetente: user.email || "Anônimo",
+      timestamp: Date.now()
+    };
+
+    db.ref("chat").push(novaMensagem);
+    input.value = "";
+    carregarMensagens();
+  };
+});
+
+function mostrarLogin() {
+  document.getElementById("formLogin").style.display = "block";
+}
+
+function entrarComoVisualizador() {
+  document.getElementById("modalEscolhaPerfil").style.display = "none";
+  document.getElementById("modalChat").style.display = "flex";
+  carregarMensagens();
+}
+
+function fazerLoginFirebase() {
+  const email = document.getElementById("emailLogin").value;
+  const senha = document.getElementById("senhaLogin").value;
+
+  if (!email || !senha) {
+    alert("⚠️ Preencha o email e a senha!");
+    return;
+  }
+
+  const authHistorico = appHistorico.auth();
+
+  authHistorico.signInWithEmailAndPassword(email, senha)
+    .then(() => {
+      alert("✅ Login realizado com sucesso!");
+      document.getElementById("modalEscolhaPerfil").style.display = "none";
+      document.getElementById("modalChat").style.display = "flex";
+      carregarMensagens();
+    })
+    .catch(error => {
+      console.error("🔥 Firebase Auth error:", error.code, error.message);
+      alert("❌ Erro ao fazer login:\n" + error.message);
+    });
+}
+
+function fazerLogout() {
+  appHistorico.auth().signOut().then(() => {
+    alert("✅ Logout realizado com sucesso!");
+    document.getElementById("modalChat").style.display = "none";
+    document.getElementById("modalEscolhaPerfil").style.display = "flex";
+  }).catch((error) => {
+    console.error("Erro ao fazer logout:", error);
+    alert("❌ Erro ao fazer logout:\n" + error.message);
+  });
+}
+
+function editarPrefixo(idMaquina) {
+  const span = document.getElementById(`prefixo-${idMaquina}`);
+  const input = document.getElementById(`inputPrefixo-${idMaquina}`);
+  const botao = document.getElementById(`botaoPrefixo-${idMaquina}`);
+
+  // Detecta se está escondido (modo visualizar) ou visível (modo edição)
+  const estaEditando = input.style.display !== "none";
+
+  if (!estaEditando) {
+    // Modo edição
+    input.style.display = "inline-block";
+    span.style.display = "none";
+    botao.textContent = "💾";
+    input.focus();
+  } else {
+    // Salvar
+    const novoPrefixo = input.value.trim();
+    firebase.database().ref(`maquinas/${idMaquina}/prefixo`).set(novoPrefixo)
+      .then(() => {
+        span.textContent = novoPrefixo;
+        input.style.display = "none";
+        span.style.display = "inline-block";
+        botao.textContent = "✏️";
+      })
+      .catch(err => {
+        alert("Erro ao salvar prefixo: " + err.message);
+      });
+  }
+}
+
+function abrirModalInformacoesMaquina(idMaquina) {
+  const modal = document.createElement("div");
+  modal.className = "modal-central";
+  modal.innerHTML = `
+    <div class="modal-content-central">
+      <h2>Informações: Máquina ${idMaquina}</h2>
+      <div id="infoCampos-${idMaquina}">Carregando...</div>
+      <button onclick="document.body.removeChild(this.closest('.modal-central'))">Fechar</button>
+    </div>
+  `;
+  document.body.appendChild(modal);
+
+  firebase.database().ref("informacoes/" + idMaquina).once("value").then(snapshot => {
+    const dados = snapshot.val() || {};
+    const campos = ["prefixo", "molde", "blank", "neckrings", "thimbles", "machos", "coolers", "funis", "pinças", "corredor", "tipoProcesso"];
+    let html = "";
+
+    campos.forEach(campo => {
+      const valor = dados[campo] || "";
+      html += `
+        <label for="${campo}">${campo.charAt(0).toUpperCase() + campo.slice(1)}:</label>
+        <input id="${campo}" type="text" value="${valor}" onchange="salvarCampoInfo('${idMaquina}', '${campo}', this.value)" />
+      `;
+    });
+
+    const infoDiv = document.getElementById(`infoCampos-${idMaquina}`);
+    if (infoDiv) {
+      infoDiv.innerHTML = html;
+    }
+  });
+}
+
+function salvarCampoInfo(idMaquina, campo, valor) {
+  firebase.database().ref(`informacoes/${idMaquina}/${campo}`).set(valor)
+    .then(() => {
+      console.log(`✅ Campo "${campo}" salvo com sucesso para a máquina ${idMaquina}.`);
+    })
+    .catch((error) => {
+      console.error(`❌ Erro ao salvar campo "${campo}":`, error);
+      alert("Erro ao salvar informação: " + error.message);
+    });
+}
+
+</script>
