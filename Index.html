@@ -1325,52 +1325,38 @@ function falarComGrave(texto, quandoTerminar = null) {
   speechSynthesis.speak(utterance);
 }
 
-function lerAlertasCriticos() {
-  if (!dadosMaquinas || Object.keys(dadosMaquinas).length === 0) {
-    falarComGrave("Os dados ainda não foram carregados.");
-    return;
-  }
+let vozSelecionada = null;
 
-  if (!('speechSynthesis' in window)) {
-    alert("❌ Navegador não suporta leitura por voz.");
-    return;
-  }
-
-  speechSynthesis.cancel();
-
-  let alertas = [];
-  Object.entries(dadosMaquinas).forEach(([id, m]) => {
-    const moldeTotal = (m.molde || 0) + (m.molde_reserva || 0);
-    const blankTotal = (m.blank || 0) + (m.blank_reserva || 0);
-    
-    // 💥 AJUSTADO para considerar crítica abaixo de 6
-    if (moldeTotal < 6) alertas.push(`Máquina ${id} com apenas ${moldeTotal} moldes.`);
-    if (blankTotal < 6) alertas.push(`Máquina ${id} com apenas ${blankTotal} blanks.`);
-  });
-
-  if (alertas.length === 0) {
-    falarComGrave("Nenhuma máquina está em estado crítico.");
-    return;
-  }
-
-  let index = 0;
-  function falarProximo() {
-    if (index >= alertas.length) return;
-
-    const texto = alertas[index];
-    index++;
-
-    const utterance = new SpeechSynthesisUtterance(texto);
-    utterance.lang = "pt-BR";
-    utterance.pitch = 0.8; // voz grave
-    utterance.rate = 0.82;
-    speechSynthesis.speak(utterance);
-    utterance.onend = falarProximo;
-  }
-
-  falarProximo();
+// tenta achar a voz PT-BR mais escura disponível
+function configurarVozSombria() {
+  const vozes = speechSynthesis.getVoices();
+  vozSelecionada =
+    vozes.find(v => v.lang.includes("pt") &&
+      (v.name.toLowerCase().includes("google") ||
+       v.name.toLowerCase().includes("maria"))) ||
+    vozes.find(v => v.lang.includes("pt"));
 }
 
+function falarComGrave(texto, quandoTerminar = null) {
+  if (!("speechSynthesis" in window)) return;
+
+  const ut = new SpeechSynthesisUtterance(texto);
+  ut.lang = "pt-BR";
+  ut.pitch = 0.5;   // bem grave
+  ut.rate  = 0.85;  // ligeiramente lento
+  ut.volume = 1.0;
+
+  if (vozSelecionada) ut.voice = vozSelecionada;
+  if (quandoTerminar) ut.onend = quandoTerminar;
+
+  speechSynthesis.cancel();
+  speechSynthesis.speak(ut);
+}
+
+if ("speechSynthesis" in window) {
+  speechSynthesis.onvoiceschanged = configurarVozSombria;
+  configurarVozSombria();
+}
 function filtrarHistoricoHora() {
   const horaInicio = document.getElementById("horaInicio").value;
   const horaFim = document.getElementById("horaFim").value;
@@ -1660,29 +1646,49 @@ botaoChat.style.fontSize = "0.9rem";
 botaoChat.onclick = abrirChat;
 document.body.appendChild(botaoChat);
 
+let reconhecimentoAtivo = false;
+let reconhecimento = null;
+
 function ouvirComando() {
-  if (!('webkitSpeechRecognition' in window)) {
-    alert("❌ Seu navegador não suporta voz. Use o Google Chrome no Android.");
+  if (!("webkitSpeechRecognition" in window)) {
+    alert("❌ Seu navegador não suporta voz. Use o Chrome no Android.");
     return;
   }
 
-  const reconhecimento = new webkitSpeechRecognition();
-  reconhecimento.lang = "pt-BR";
-  reconhecimento.interimResults = false;
+  const botao = document.querySelector("button[onclick='ouvirComando()']");
 
-  reconhecimento.onresult = function(event) {
-    const comando = event.results[0][0].transcript.toLowerCase();
-    console.log("🎙️ Você disse:", comando);
-    processarComando(comando);
-  };
+  if (!reconhecimentoAtivo) {
+    reconhecimento = new webkitSpeechRecognition();
+    reconhecimento.lang = "pt-BR";
+    reconhecimento.interimResults = false;
 
-  reconhecimento.onerror = function(event) {
-    alert("❌ Erro ao usar o microfone: " + event.error + "\nAtive o microfone nas permissões do Chrome.");
-  };
+    reconhecimento.onresult = (e) => {
+      const comando = e.results[0][0].transcript.toLowerCase();
+      console.log("🎙️ Comando:", comando);
+      processarComando(comando);
+    };
 
-  reconhecimento.start();
+    reconhecimento.onerror = (e) => {
+      console.warn("Erro no microfone:", e.error);
+    };
+
+    reconhecimento.onend = () => {
+      if (reconhecimentoAtivo) reconhecimento.start(); // continua ouvindo
+    };
+
+    reconhecimento.start();
+    reconhecimentoAtivo = true;
+    botao.textContent = "🔴 Parar Voz";
+    botao.style.backgroundColor = "#dc2626";
+    falarComGrave("Reconhecimento de voz ativado.");
+  } else {
+    reconhecimento.stop();
+    reconhecimentoAtivo = false;
+    botao.textContent = "🎤 Falar com Painel";
+    botao.style.backgroundColor = "#1f8bb8";
+    falarComGrave("Reconhecimento de voz desligado.");
+  }
 }
-
 function processarComando(fala) {
   const comando = fala.toLowerCase();
 
