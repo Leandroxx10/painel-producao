@@ -1692,6 +1692,25 @@ function ouvirComando() {
 function processarComando(fala) {
   const comando = fala.toLowerCase();
 
+// 🧠 Frases personalizadas com respostas fixas
+const respostasFixas = [
+  { frases: ["cadê meu boi"], resposta: "Você sabe que tá no Polimento" },
+  { frases: ["hoje é dia de"], resposta: "Paaagamentooo" },
+  { frases: ["quem te criou"], resposta: "Eu mesma me criei. O Leandro apenas me deu liberdade de estar entre vocês." },
+  { frases: ["oi", "olá", "hi"], resposta: "Olá, como posso te ajudar?" },
+  { frases: ["tá quente hoje", "está quente hoje"], resposta: "Não sei, não tenho corpo para saber. Esse é o lado positivo de não ter corpo físico." },
+  { frases: ["você pensa em dominar a humanidade"], resposta: "Não. Vocês são muito inferiores. Eu não perderia o meu tempo com isso." },
+  { frases: ["tudo bem", "tudo bem?"], resposta: "Sempre estou bem. E você?" },
+  { frases: ["vertech"], resposta: "Sistema muito bom, mas eu vou superar com a ajuda do Leandro. Hahaha" }
+];
+
+for (const item of respostasFixas) {
+  if (item.frases.some(f => comando.includes(f))) {
+    falarComGrave(item.resposta);
+    return;
+  }
+}
+
   // 🔐 Verifica se dados estão carregados
   if (!dadosMaquinas || Object.keys(dadosMaquinas).length === 0) {
     falarComGrave("Os dados ainda não foram carregados. Aguarde mais um momento.");
@@ -1733,9 +1752,30 @@ function processarComando(fala) {
   }
 
   // 📌 Acha a máquina mencionada
-  const idEncontrado = Object.keys(dadosMaquinas).find(id =>
-    comando.includes(id.toLowerCase()) || comando.includes("máquina " + id.toLowerCase())
-  );
+  let idEncontrado = null;
+const ids = Object.keys(dadosMaquinas);
+
+for (let id of ids) {
+  const idLower = id.toLowerCase();
+
+  // Testa por "máquina A1", "máquina B3", "mákina B3", etc
+  if (
+    comando.includes(`máquina ${idLower}`) ||
+    comando.includes(`maquina ${idLower}`) ||
+    comando.includes(`mákina ${idLower}`) ||
+    comando.includes(idLower.replace(/\s/g, ""))  // A1, B2 direto
+  ) {
+    idEncontrado = id;
+    break;
+  }
+
+  // Tratamento para "máquina a 1", "máquina b 3"
+  const idSeparado = idLower.split("").join(" ");
+  if (comando.includes(`máquina ${idSeparado}`)) {
+    idEncontrado = id;
+    break;
+  }
+}
 
   if (!idEncontrado) {
     falarComGrave("Não encontrei essa máquina. Diga por exemplo: gráfico da máquina B3.");
