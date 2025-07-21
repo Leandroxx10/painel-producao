@@ -795,6 +795,25 @@ body.dark .spinner-texto {
   font-size: 0.85rem;
 }
 
+.botao-ativo-voz {
+  animation: pulsarBotao 1s ease-in-out infinite;
+  background-color: #dc2626 !important;
+}
+
+@keyframes pulsarBotao {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7); }
+  70% { transform: scale(1.05); box-shadow: 0 0 0 8px rgba(220, 38, 38, 0); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
+}
+
+
+#tabelaMensagens tr:nth-child(even) {
+  background-color: #f3f4f6;
+}
+#tabelaMensagens tr:hover {
+  background-color: #e0f2fe;
+}
+
 /* NO CELULAR (TELA PEQUENA), TUDO EMBAIXO */
 @media (max-width: 600px) {
   .filtro-container {
@@ -931,9 +950,13 @@ body.dark .spinner-texto {
 </div>
   
   <!-- MODAL DE CHAT AO VIVO -->
-<div id="modalChat" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:99999; justify-content:center; align-items:center;">
+<div id="modalChat" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:100000; justify-content:center; align-items:center;">
   <div style="background:white; padding:20px; border-radius:10px; width:90%; max-width:600px; max-height:90%; overflow:auto; position:relative;">
     <button onclick="fecharChat()" style="position:absolute; top:10px; right:10px;">❌</button>
+    
+    <button onclick="limparMensagensAntigas()" style="margin-top:10px; background:#b91c1c; color:white; border:none; padding:8px 12px; border-radius:6px;">
+🗑️ Apagar mensagens com +7 dias
+</button>
     
     <h2>Chat ao Vivo</h2>
 <div id="infoUsuario" style="font-size: 0.9rem; margin-bottom: 10px;">
@@ -941,19 +964,22 @@ body.dark .spinner-texto {
   <button onclick="fazerLogout()" style="margin-left:10px; padding:6px 10px; background:#dc2626; color:white; border:none; border-radius:6px;">Sair</button>
 </div>
 
-    <div id="containerMensagens" style="max-height: 200px; overflow-y: auto;">
+<!-- ⬇️ Aqui está o campo de busca -->
+<input id="buscaMensagem" placeholder="🔎 Buscar mensagem..." style="width:100%; padding:8px; margin-bottom:10px; border-radius:6px; border:1px solid #ccc;" oninput="filtrarMensagensChat()" />
+
+<div id="containerMensagens" style="max-height: 200px; overflow-y: auto;">
   <div style="border: 1px solid #ccc; border-radius: 6px; overflow: hidden;">
-  <!-- Cabeçalho fixo -->
-  <table style="width:100%; border-collapse: collapse;">
-    <thead style="background:#1f2937; color:white; position: sticky; top: 0; z-index: 1;">
-  <tr>
-    <th style="padding:8px; background:#1f2937;">Data</th>
-    <th style="padding:8px; background:#1f2937;">Horário</th>
-    <th style="padding:8px; background:#1f2937;">Remetente</th>
-    <th style="padding:8px; background:#1f2937;">Mensagem</th>
-  </tr>
-</thead>
-  </table>
+    <!-- Cabeçalho fixo -->
+    <table style="width:100%; border-collapse: collapse;">
+      <thead style="background:#1f2937; color:white; position: sticky; top: 0; z-index: 1;">
+        <tr>
+          <th style="padding:8px; background:#1f2937;">Data</th>
+          <th style="padding:8px; background:#1f2937;">Horário</th>
+          <th style="padding:8px; background:#1f2937;">Remetente</th>
+          <th style="padding:8px; background:#1f2937;">Mensagem</th>
+        </tr>
+      </thead>
+    </table>
 
   <!-- Corpo com rolagem -->
   <div id="containerMensagens" style="max-height: 200px; overflow-y: auto;">
@@ -1646,6 +1672,21 @@ botaoChat.style.fontSize = "0.9rem";
 botaoChat.onclick = abrirChat;
 document.body.appendChild(botaoChat);
 
+// 🔴 Contador de mensagens não lidas (visual)
+const contadorNotificacoes = document.createElement("span");
+contadorNotificacoes.id = "contadorMensagens";
+contadorNotificacoes.style.position = "absolute";
+contadorNotificacoes.style.top = "-6px";
+contadorNotificacoes.style.right = "-6px";
+contadorNotificacoes.style.background = "#e11d48";
+contadorNotificacoes.style.color = "white";
+contadorNotificacoes.style.padding = "4px 7px";
+contadorNotificacoes.style.borderRadius = "50%";
+contadorNotificacoes.style.fontSize = "0.75rem";
+contadorNotificacoes.style.display = "none";
+contadorNotificacoes.style.fontWeight = "bold";
+botaoChat.appendChild(contadorNotificacoes);
+
 let reconhecimentoAtivo = false;
 let reconhecimento = null;
 
@@ -1679,13 +1720,13 @@ function ouvirComando() {
     reconhecimento.start();
     reconhecimentoAtivo = true;
     botao.textContent = "🔴 Parar Voz";
-    botao.style.backgroundColor = "#dc2626";
+botao.classList.add("botao-ativo-voz");
     falarComGrave("Reconhecimento de voz ativado.");
   } else {
     reconhecimento.stop();
     reconhecimentoAtivo = false;
     botao.textContent = "🎤 Falar com Painel";
-    botao.style.backgroundColor = "#1f8bb8";
+botao.classList.remove("botao-ativo-voz");
     falarComGrave("Reconhecimento de voz desligado.");
   }
 }
@@ -1695,6 +1736,7 @@ function processarComando(fala) {
 // 🧠 Frases personalizadas com respostas fixas
 const respostasFixas = [
   { frases: ["cadê meu boi"], resposta: "Você sabe que tá no Polimento" },
+  { frases: ["cadê o Padeiro?"], resposta: "Essa é uma pergunta muito fácil de responder, ele está na casa do Pato" },
   { frases: ["hoje é dia de"], resposta: "Paaagamentooo" },
   { frases: ["quem te criou"], resposta: "Eu mesma me criei. O Leandro apenas me deu liberdade de estar entre vocês." },
   { frases: ["oi", "olá", "hi"], resposta: "Olá, como posso te ajudar?" },
@@ -1778,7 +1820,7 @@ for (let id of ids) {
 }
 
   if (!idEncontrado) {
-    falarComGrave("Não encontrei essa máquina. Diga por exemplo: gráfico da máquina B3.");
+    falarComGrave("Não entendi o quê você falou. Diga por exemplo: gráfico da máquina A1.");
     return;
   }
 
@@ -1814,7 +1856,9 @@ for (let id of ids) {
 function abrirChat() {
   appHistorico.auth().onAuthStateChanged((user) => {
     if (user) {
-      document.getElementById("emailUsuario").textContent = user.email;
+    
+      const nomeUsuario = user.email.split("@")[0].replace(/\./g, " ");
+document.getElementById("emailUsuario").textContent = nomeUsuario;
       document.getElementById("modalChat").style.display = "flex";
       carregarMensagens();
     } else {
@@ -1835,29 +1879,51 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Carrega mensagens do Firebase
   window.carregarMensagens = function () {
-    const corpo = document.getElementById("tabelaMensagens");
-    if (!corpo) return;
-    corpo.innerHTML = "<tr><td colspan='4' style='text-align:center;'>⏳ Carregando mensagens...</td></tr>";
+  const corpo = document.getElementById("tabelaMensagens");
+  if (!corpo) return;
+  corpo.innerHTML = "<tr><td colspan='4' style='text-align:center;'>⏳ Carregando mensagens...</td></tr>";
 
-    db.ref("chat").limitToLast(50).once("value", snapshot => {
-      const mensagens = snapshot.val();
-      corpo.innerHTML = "";
-
+  db.ref("chat").limitToLast(50).on("value", snapshot => {
+    const mensagens = snapshot.val();
+    corpo.innerHTML = "";
+    
       if (!mensagens) {
         corpo.innerHTML = "<tr><td colspan='4' style='text-align:center;'>📭 Nenhuma mensagem ainda.</td></tr>";
         return;
       }
 
+let totalMensagensVistas = 0;
+
+function atualizarNotificacoes(mensagens) {
+  const total = Object.keys(mensagens || {}).length;
+  const novas = total - totalMensagensVistas;
+
+  const contador = document.getElementById("contadorMensagens");
+  const chatAberto = document.getElementById("modalChat").style.display === "flex";
+
+  if (novas > 0 && !chatAberto) {
+    contador.textContent = novas;
+    contador.style.display = "inline-block";
+  } else {
+    contador.style.display = "none";
+  }
+}
       Object.entries(mensagens).forEach(([id, m]) => {
         const dataHora = new Date(m.timestamp || 0);
-        const data = dataHora.toLocaleDateString("pt-BR");
+        const dia = String(dataHora.getDate()).padStart(2, '0');
+const mes = String(dataHora.getMonth() + 1).padStart(2, '0');
+const data = `${dia}/${mes}`;
         const hora = dataHora.toLocaleTimeString("pt-BR", { hour: '2-digit', minute: '2-digit' });
+        
+        totalMensagensVistas = Object.keys(mensagens).length;
+        
+atualizarNotificacoes(mensagens);
 
         const linha = `
   <tr>
     <td style="padding:6px; color:black;">${data}</td>
     <td style="padding:6px; color:black;">${hora}</td>
-    <td style="padding:6px; color:black;">${m.remetente || "Usuário"}</td>
+    <td style="padding:6px; color:black;">${(m.remetente || "Usuário").split("@")[0]}</td>
     <td style="padding:6px; color:black;">${m.mensagem}</td>
   </tr>
 `;
@@ -1865,6 +1931,10 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     });
   };
+  
+  // Scroll automático para o final do chat
+const container = document.getElementById("containerMensagens");
+container.scrollTop = container.scrollHeight;
 
   // Envia mensagem para o Firebase
   window.enviarMensagem = function () {
@@ -1917,6 +1987,9 @@ function fazerLoginFirebase() {
       alert("✅ Login realizado com sucesso!");
       document.getElementById("modalEscolhaPerfil").style.display = "none";
       document.getElementById("modalChat").style.display = "flex";
+      
+      totalMensagensVistas = Object.keys(historicoMensagens || {}).length;
+document.getElementById("contadorMensagens").style.display = "none";
       carregarMensagens();
     })
     .catch(error => {
@@ -1966,6 +2039,7 @@ function editarPrefixo(idMaquina) {
   }
 }
 
+
 function abrirModalInformacoesMaquina(idMaquina) {
   const modal = document.createElement("div");
   modal.className = "modal-central";
@@ -2007,6 +2081,43 @@ function salvarCampoInfo(idMaquina, campo, valor) {
       console.error(`❌ Erro ao salvar campo "${campo}":`, error);
       alert("Erro ao salvar informação: " + error.message);
     });
+}
+
+
+function filtrarMensagensChat() {
+  const termo = document.getElementById("buscaMensagem").value.toLowerCase();
+  const linhas = document.querySelectorAll("#tabelaMensagens tr");
+
+  linhas.forEach(linha => {
+    const texto = linha.innerText.toLowerCase();
+    linha.style.display = texto.includes(termo) ? "" : "none";
+  });
+}
+
+function limparMensagensAntigas() {
+  if (!confirm("⚠️ Tem certeza que deseja apagar mensagens com mais de 7 dias?")) return;
+
+  const agora = Date.now();
+  const seteDias = 7 * 24 * 60 * 60 * 1000;
+
+  db.ref("chat").once("value").then(snapshot => {
+    const mensagens = snapshot.val();
+    if (!mensagens) {
+      alert("📭 Nenhuma mensagem para excluir.");
+      return;
+    }
+
+    let contador = 0;
+    Object.entries(mensagens).forEach(([id, m]) => {
+      if ((agora - m.timestamp) > seteDias) {
+        db.ref("chat/" + id).remove();
+        contador++;
+      }
+    });
+
+    alert(`✅ ${contador} mensagens antigas removidas.`);
+    carregarMensagens();
+  });
 }
 
 </script>
