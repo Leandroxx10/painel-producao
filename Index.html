@@ -2007,7 +2007,7 @@ function entrarComoVisualizador() {
   document.getElementById("modalChat").style.display = "flex";
   carregarMensagens();
 }
-
+let historicoMensagens = [];
 function fazerLoginFirebase() {
   const email = document.getElementById("emailLogin").value;
   const senha = document.getElementById("senhaLogin").value;
