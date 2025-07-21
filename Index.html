@@ -891,6 +891,19 @@ body.dark .spinner-texto {
   }
 }
 
+.imagem-opcao {
+  width: 48%;
+  border-radius: 10px;
+  cursor: pointer;
+  border: 2px solid #232323;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, opacity 0.3s ease;
+}
+
+.imagem-opcao:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 16px rgba(0, 115, 255, 0.25); /* azul mais escuro e elegante */
+}
+
 @media (max-width: 768px) {
   #graficoHistorico {
     width: 100% !important;
@@ -930,22 +943,46 @@ body.dark .spinner-texto {
   </div>
 </div>
   
-  <!-- MODAL DE ESCOLHA DE PERFIL -->
-<div id="modalEscolhaPerfil" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:999999; justify-content:center; align-items:center;">
-  <div style="background:white; padding:20px; border-radius:12px; max-width:90%; width:400px; text-align:center;">
-    <h2 style="margin-bottom:20px;">Como deseja acessar o chat?</h2>
+ <!-- MODAL DE ESCOLHA DE PERFIL -->
+<div id="modalEscolhaPerfil" style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.7); z-index: 999999; justify-content: center; align-items: center;">
+  <div style="background: white; padding: 20px; border-radius: 12px; max-width: 90%; width: 500px; text-align: center;">
+    <h2 style="margin-bottom: 20px;">Como deseja acessar o chat?</h2>
 
-    <div style="display:flex; flex-direction:column; gap:12px;">
-      <button onclick="entrarComoVisualizador()" style="padding:12px; background:#3b82f6; color:white; font-size:1rem; border:none; border-radius:8px;">🔍 Visualizador</button>
-      <button onclick="mostrarLogin()" style="padding:12px; background:#16a34a; color:white; font-size:1rem; border:none; border-radius:8px;">🔐 Fazer Login</button>
+    <div id="containerOpcoes" style="display: flex; gap: 16px; justify-content: center; align-items: center; transition: all 0.3s ease;">
+      <!-- Visualizador -->
+      <img
+        id="imgAnonimo"
+        src="https://raw.githubusercontent.com/Leandroxx10/painel-producao/refs/heads/main/depositphotos_39258193-stock-illustration-anonymous-business-man-icon.jpg"
+        alt="Visualizador"
+        onclick="entrarComoVisualizador()"
+        class="imagem-opcao"
+        style="width: 48%; border-radius: 10px; cursor: pointer; transition: transform 0.3s ease, opacity 0.3s ease; border: 2px solid #ccc;"
+        onmouseover="this.style.transform='scale(1.05)'"
+        onmouseout="this.style.transform='scale(1)'"
+      />
+
+      <!-- Admin -->
+      <img
+        id="imgAdmin"
+        src="https://raw.githubusercontent.com/Leandroxx10/painel-producao/refs/heads/main/utilizador-de-negocios-em-cog_78370-7040.jpg"
+        alt="Fazer Login"
+        onclick="mostrarLoginAnimado()"
+        class="imagem-opcao"
+        style="width: 48%; border-radius: 10px; cursor: pointer; transition: transform 0.3s ease; border: 2px solid #ccc;"
+        onmouseover="this.style.transform='scale(1.05)'"
+        onmouseout="this.style.transform='scale(1)'"
+      />
     </div>
 
     <!-- Login escondido -->
-    <div id="formLogin" style="margin-top:20px; display:none;">
-      <input id="emailLogin" type="email" placeholder="Email" style="width:100%; padding:10px; margin-bottom:8px; border-radius:6px; border:1px solid #ccc;" />
-      <input id="senhaLogin" type="password" placeholder="Senha" style="width:100%; padding:10px; margin-bottom:8px; border-radius:6px; border:1px solid #ccc;" />
-      <button onclick="fazerLoginFirebase()" style="width:100%; padding:10px; background:#000; color:white; border:none; border-radius:6px;">🚪 Entrar</button>
+    <div id="formLogin" style="margin-top: 20px; display: none;">
+      <input id="emailLogin" type="email" placeholder="Email" style="width: 100%; padding: 10px; margin-bottom: 8px; border-radius: 6px; border: 1px solid #ccc;" />
+      <input id="senhaLogin" type="password" placeholder="Senha" style="width: 100%; padding: 10px; margin-bottom: 8px; border-radius: 6px; border: 1px solid #ccc;" />
+      <button onclick="fazerLoginFirebase()" style="width: 100%; padding: 10px; background: #000; color: white; border: none; border-radius: 6px;">🚪 Entrar</button>
     </div>
+
+    <!-- Botão Fechar -->
+    <button onclick="fecharModalEscolha()" style="margin-top: 20px; background: #6b7280; color: white; border: none; padding: 10px; border-radius: 8px;">❌ Fechar</button>
   </div>
 </div>
   
@@ -2117,6 +2154,61 @@ function limparMensagensAntigas() {
 
     alert(`✅ ${contador} mensagens antigas removidas.`);
     carregarMensagens();
+  });
+}
+
+function mostrarLoginAnimado() {
+  const imgAnonimo = document.getElementById("imgAnonimo");
+  const imgAdmin = document.getElementById("imgAdmin");
+  const formLogin = document.getElementById("formLogin");
+  const container = document.getElementById("containerOpcoes");
+
+  // Esconde a imagem do anônimo com animação
+  imgAnonimo.style.opacity = "0";
+  imgAnonimo.style.pointerEvents = "none";
+
+  // Admin fica centralizado
+  container.style.justifyContent = "center";
+
+  // Mostra o formulário de login
+  setTimeout(() => {
+    imgAnonimo.style.display = "none";
+    imgAdmin.style.width = "90%";
+    formLogin.style.display = "block";
+  }, 300);
+}
+
+function resetarEscolhaPerfil() {
+  const imgAnonimo = document.getElementById("imgAnonimo");
+  const imgAdmin = document.getElementById("imgAdmin");
+  const formLogin = document.getElementById("formLogin");
+  const container = document.getElementById("containerOpcoes");
+
+  imgAnonimo.style.display = "block";
+  imgAnonimo.style.opacity = "1";
+  imgAnonimo.style.pointerEvents = "auto";
+
+  imgAdmin.style.width = "48%";
+  formLogin.style.display = "none";
+
+  container.style.justifyContent = "center";
+  container.style.flexDirection = "row";
+}
+
+function fecharModalEscolha() {
+  document.getElementById("modalEscolhaPerfil").style.display = "none";
+  resetarEscolhaPerfil();
+}
+
+// Chame essa função ao fazer logout:
+function fazerLogout() {
+  appHistorico.auth().signOut().then(() => {
+    alert("✅ Logout realizado com sucesso!");
+    document.getElementById("modalChat").style.display = "none";
+    document.getElementById("modalEscolhaPerfil").style.display = "flex";
+    resetarEscolhaPerfil(); // <- ESSENCIAL para voltar ao layout original
+  }).catch((error) => {
+    alert("❌ Erro ao fazer logout:\n" + error.message);
   });
 }
 
