@@ -1688,7 +1688,9 @@ botaoMicrofone.style.borderRadius = "8px";
 botaoMicrofone.style.boxShadow = "0 4px 8px rgba(0,0,0,0.3)";
 botaoMicrofone.style.fontWeight = "bold";
 botaoMicrofone.style.fontSize = "0.9rem";
-botaoMicrofone.onclick = ouvirComando;
+botaoMicrofone.onclick = function (event) {
+  ouvirComando(event);
+};
 
 document.body.appendChild(botaoMicrofone);
 // Botão flutuante do Chat ao Vivo
@@ -1733,7 +1735,7 @@ function ouvirComando() {
     return;
   }
 
-  const botao = document.querySelector("button[onclick='ouvirComando()']");
+  const botao = event?.currentTarget || this;
 
   if (!reconhecimentoAtivo) {
     reconhecimento = new webkitSpeechRecognition();
@@ -1756,7 +1758,7 @@ function ouvirComando() {
 
     reconhecimento.start();
     reconhecimentoAtivo = true;
-    botao.textContent = "🔴 Parar Voz";
+    botao.textContent = "🔴 Desativar comando de Voz";
 botao.classList.add("botao-ativo-voz");
     falarComGrave("Reconhecimento de voz ativado.");
   } else {
@@ -1820,10 +1822,10 @@ for (const item of respostasFixas) {
   }
 
   if (comando.includes("abrir chat") || comando.includes("falar com operador")) {
-    abrirChat();
-    falarComGrave("Abrindo chat ao vivo.");
-    return;
-  }
+  abrirChat(); // segura, pois já está protegida
+  falarComGrave("Abrindo chat ao vivo.");
+  return;
+}
 
   if (comando.includes("status de todas")) {
     lerAlertasCriticos();
@@ -1891,18 +1893,30 @@ for (let id of ids) {
   falarComGrave(resposta);
 }
 function abrirChat() {
-  appHistorico.auth().onAuthStateChanged((user) => {
-    if (user) {
-    
+  const modalChat = document.getElementById("modalChat");
+
+  if (!modalChat) {
+    alert("❌ O chat ainda não está disponível.");
+    return;
+  }
+
+  modalChat.style.display = "flex";
+
+  // Aguarda o DOM terminar de renderizar o conteúdo
+  setTimeout(() => {
+    const emailUsuarioEl = document.getElementById("emailUsuario");
+    const user = appHistorico.auth().currentUser;
+
+    if (emailUsuarioEl && user) {
       const nomeUsuario = user.email.split("@")[0].replace(/\./g, " ");
-document.getElementById("emailUsuario").textContent = nomeUsuario;
-      document.getElementById("modalChat").style.display = "flex";
-      carregarMensagens();
-    } else {
-      document.getElementById("modalEscolhaPerfil").style.display = "flex";
+      emailUsuarioEl.textContent = nomeUsuario;
     }
-  });
+
+    carregarMensagens();
+  }, 100); // dá tempo do DOM carregar
 }
+      
+       
 document.addEventListener("DOMContentLoaded", () => {
   
 
@@ -2004,6 +2018,8 @@ function mostrarLogin() {
 
 function entrarComoVisualizador() {
   document.getElementById("modalEscolhaPerfil").style.display = "none";
+  abrirChat(); // já garante segurança para carregar mensagens
+
   document.getElementById("modalChat").style.display = "flex";
   carregarMensagens();
 }
