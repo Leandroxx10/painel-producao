@@ -1827,6 +1827,20 @@ for (const item of respostasFixas) {
   return;
 }
 
+// === Comandos para gráfico/histórico ===
+if (
+  comando.includes("abrir gráfico") ||
+  comando.includes("mostrar histórico") ||
+  comando.includes("gráfico da máquina") ||
+  comando.includes("histórico da máquina") ||
+  comando.includes("ver gráfico") ||
+  comando.includes("abrir o histórico")
+) {
+  abrirModalHistorico(); // chama a função que abre o modal do gráfico
+  falarComGrave("Abrindo histórico da máquina.");
+  return;
+}
+
   if (comando.includes("status de todas")) {
     lerAlertasCriticos();
     return;
