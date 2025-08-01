@@ -212,6 +212,8 @@ body.dark .top-bar button {
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
   border-left: 2px solid #397ee5;
   border-right: 2px solid #397ee5;
+  border-Bottom: 1px solid #e8e8e8;
+  border-Top: 1px solid #e8e8e8;
   transition: transform 0.3s ease, background 0.3s ease;
   width: 100%;
   box-sizing: border-box;
@@ -299,7 +301,7 @@ body.dark .top-bar button {
   position: absolute;
   top: 12px;
   left: 20px;
-  background: linear-gradient(to right, #dc2626, #e11d48); !!importante;
+  background: linear-gradient(to right, #dc2626, #e11d48) !important;
   color: #fff;
   padding: 6px 12px;
   border-radius: 8px;
@@ -339,7 +341,7 @@ body.dark .top-bar button {
 /* Quando estiver marcado, aparece um check verde */
 .checkbox-parada:checked::after {
   content: "✔";
-  color: #ff4040e0;  !!importante;
+  color: #ff4040e0 !important;
   font-size: 18px;
   font-weight: bold;
 }
@@ -494,7 +496,7 @@ body.dark .spinner-texto {
   transform: scale(0.97);
 }
 
-<!-- Manutenção 2 -->
+/* Manutenção 2 */
 .spinner-overlay {
   position: fixed;
   inset: 0;
@@ -924,10 +926,6 @@ body.dark .spinner-texto {
   </style>
 </head>
 <body>
-    
-    
-  </div>
-</div>
      
      
      
@@ -936,10 +934,20 @@ body.dark .spinner-texto {
   <h1>Painel de Produção</h1>
   
   <div id="modalInfo" class="modal-info" style="display:none;">
-  <div class="modal-content-info">
+  <div class="modal-content-info" style="position: relative;">
+    <button onclick="fecharModalInfo()" style="
+      position: absolute;
+      top: 12px;
+      right: 16px;
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      color: #444;
+      cursor: pointer;
+    ">❌</button>
+
     <h2>Informações do Equipamento</h2>
     <div id="infoCampos"></div>
-    <button onclick="fecharModalInfo()">Fechar</button>
   </div>
 </div>
   
@@ -1015,7 +1023,7 @@ body.dark .spinner-texto {
           <th style="padding:8px; background:#1f2937;">Remetente</th>
           <th style="padding:8px; background:#1f2937;">Mensagem</th>
         </tr>
-      </thead>
+      </head>
     </table>
 
   <!-- Corpo com rolagem -->
@@ -1400,26 +1408,6 @@ function configurarVozSombria() {
     vozes.find(v => v.lang.includes("pt"));
 }
 
-function falarComGrave(texto, quandoTerminar = null) {
-  if (!("speechSynthesis" in window)) return;
-
-  const ut = new SpeechSynthesisUtterance(texto);
-  ut.lang = "pt-BR";
-  ut.pitch = 0.2;
-ut.rate = 1.2;
-ut.volume = 0.6;
-
-  if (vozSelecionada) ut.voice = vozSelecionada;
-  if (quandoTerminar) ut.onend = quandoTerminar;
-
-  speechSynthesis.cancel();
-  speechSynthesis.speak(ut);
-}
-
-if ("speechSynthesis" in window) {
-  speechSynthesis.onvoiceschanged = configurarVozSombria;
-  configurarVozSombria();
-}
 function filtrarHistoricoHora() {
   const horaInicio = document.getElementById("horaInicio").value;
   const horaFim = document.getElementById("horaFim").value;
