@@ -77,6 +77,24 @@
   gap: 10px;
 }
 
+
+  #senha-container {
+    display: block;
+    z-index: 999999;
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    max-width: 300px;
+    margin: 40px auto 0 auto;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  }
+
+
+  #senha-container input, #senha-container button {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
 /* ESTILO UNIFICADO DOS BOTÕES */
 .botoes-container button {
   min-width: 130px;           /* largura mínima fixa */
@@ -375,6 +393,7 @@ body.dark .top-bar button {
   justify-content: center;
   align-items: center;
   position: relative;
+  flex-direction: column;
 }
 
 .spinner-circle {
@@ -405,7 +424,7 @@ body.dark .top-bar button {
 }
 
 .spinner-texto {
-  margin-top: 14px;
+  margin-top: 20px;
   font-size: 16px;
   font-weight: bold;
   white-space: nowrap;
@@ -542,7 +561,7 @@ body.dark .spinner-texto {
 }
 
 .spinner-texto {
-  margin-top: 14px;
+  margin-top: 104px;
   font-size: 14px;
   color: white;
   font-weight: bold;
@@ -924,12 +943,111 @@ body.dark .spinner-texto {
 }
 
   </style>
+  
+  
+  <script>
+function verificarSenhaSplash() {
+  const senha = document.getElementById("senhaSplash").value;
+  const senhaCorreta = "wmoldes"; // 🔐 Altere aqui se quiser outra senha
+
+  const senhaContainer = document.getElementById("senha-container");
+  const conteudo = document.getElementById("conteudo");
+
+  if (senha === senhaCorreta) {
+  if (senhaContainer) senhaContainer.style.display = "none";
+  if (conteudo) conteudo.style.display = "block";
+  const spinner = document.getElementById("spinner");
+  if (spinner) spinner.style.display = "none";
+} else {
+    alert("❌ Senha incorreta!");
+  }
+}
+</script>
+  
 </head>
 <body>
      
+    <!-- CAMPO DE SENHA AQUI -->
+<div id="senha-container" style="margin-top: 30px; text-align: center;">
+  <input
+    id="senhaSplash"
+    type="password"
+    placeholder="🔐 Digite a senha para acessar"
+    style="padding: 10px; border-radius: 6px; border: 1px solid #ccc; font-size: 1rem; margin-bottom: 10px; width: 80%; max-width: 300px;"
+  />
+  <br />
+  <button onclick="verificarSenhaSplash()" style="padding: 10px 16px; border: none; background: #1f2937; color: white; border-radius: 6px; cursor: pointer;">
+    Entrar
+  </button>
+</div>
+
+<!-- SPINNER CENTRALIZADO COM CONTROLE -->
+<div id="spinner" style="
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 100000;
+  background: transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+">
+  <div style="position: relative; width: 180px; height: 180px;">
+    <div style="
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border: 6px solid #000;
+      border-top: 6px solid #459ccf;
+      border-radius: 50%;
+      animation: girar 0.6s linear infinite;
+    "></div>
+    <div style="
+      position: absolute;
+      top: 60%;
+      left: 55%;
+      transform: translate(-50%, -50%);
+    ">
+      <img src="https://raw.githubusercontent.com/Leandroxx10/painel-producao/refs/heads/main/file_00000000e9ec62309b1974049c0cf713.png" alt="Logo MMC" style="height: 128px;" />
+    </div>
+  </div>
+  <div style="
+    margin-top: 20px;
+    font-size: 16px;
+    font-weight: bold;
+    background: linear-gradient(to right, #2563eb, #93c5fd);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: fadeIn 1s ease-in-out;
+  ">
+    Manutenção Corretiva<span class="pontos">.</span>
+  </div>
+</div>
+
+<style>
+@keyframes girar {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes animarPontos {
+  0%   { content: "."; }
+  33%  { content: ".."; }
+  66%  { content: "..."; }
+  100% { content: "."; }
+}
+.pontos::after {
+  content: ".";
+  animation: animarPontos 0.8s infinite steps(1);
+}
+</style>
      
-     
-<div id="conteudo">    
+<div id="conteudo">
     
   <h1>Painel de Produção</h1>
   
@@ -1056,17 +1174,18 @@ body.dark .spinner-texto {
   <div id="totais"></div>
   <div id="painel">
       
-  <div id="spinner" class="spinner-loader">
-    <div class="spinner-wrapper">
-      <div class="spinner-circle"></div>
-      <div class="spinner-letra">MMC</div>
-    </div>
-    <div class="spinner-texto">
-      Manutenção de Moldes Corretiva<span class="pontos"></span>
-    </div>
-  </div>
-  
+ <div id="spinner" class="spinner-loader">  
+  <div class="spinner-wrapper" style="display: flex;">
+    <div class="spinner-circle"></div>  
+    <div class="spinner-letra" style="text-align: center;">
+  <img src="logo.png" alt="Logo MMC" style="height: 48px;" />
 </div>
+
+<div class="spinner-texto" style="text-align: center; color: white; font-size: 18px; margin-top: 10px;">
+  Manutenção de Moldes Corretiva<span class="pontos"></span>
+</div>
+
+  </div>
 </div>
 
   <!-- MODAL DE HISTÓRICO -->
@@ -1569,61 +1688,49 @@ graficoLinha = new Chart(ctx, {
 }
 document.addEventListener("DOMContentLoaded", () => {
 
-document.addEventListener("DOMContentLoaded", () => {
-
 });
 
+  document.addEventListener("DOMContentLoaded", () => {
   const modoSalvo = localStorage.getItem("modo_escuro");
   if (modoSalvo === "1") {
     document.body.classList.add("dark");
     document.querySelector(".darkmode-toggle").textContent = " Modo Claro";
   }
 
-  let ultimaFala = 0;
-  const intervaloFala = 30 * 60 * 1000;
-
   let ultimaHoraRegistrada = ""; // Para controlar se já salvou naquela hora
 
-db.ref("maquinas").on("value", snapshot => {
-  const dados = snapshot.val();
-  if (!dados) {
-    alert("❌ Nenhum dado encontrado no nó 'maquinas'.");
-    return;
-  }
+  db.ref("maquinas").on("value", snapshot => {
+    const dados = snapshot.val();
+    if (!dados) {
+      alert("❌ Nenhum dado encontrado no nó 'maquinas'.");
+      return;
+    }
 
-  dadosMaquinas = dados;
-  criarPainel(dados);
-  const spinner =
-   document.getElementById("spinner");
-if (spinner) spinner.style.display = "none";
+    dadosMaquinas = dados;
+    criarPainel(dados);
 
-  // ====== REGISTRO NO HISTÓRICO (1 VEZ POR HORA) ======
-  const agora = new Date();
+    const agora = new Date();
+    const dataFormatada = agora.toLocaleDateString("pt-BR").split("/").reverse().join("-");
+    const horaCheia = agora.getHours().toString().padStart(2, "0") + ":00";
+    const timestamp = `${dataFormatada} ${horaCheia}`;
 
-  // Formata para: "2025-07-10 13:00"
-  const dataFormatada = agora.toLocaleDateString("pt-BR").split("/").reverse().join("-");
-  const horaCheia = agora.getHours().toString().padStart(2, "0") + ":00";
-  const timestamp = `${dataFormatada} ${horaCheia}`;
+    if (timestamp === ultimaHoraRegistrada) return;
 
-  // Verifica se já salvou nesta hora
-  if (timestamp === ultimaHoraRegistrada) return;
+    ultimaHoraRegistrada = timestamp;
 
-  // Atualiza controle
-  ultimaHoraRegistrada = timestamp;
+    // Salva para cada máquina
+    Object.entries(dados).forEach(([idMaquina, dadosMaquina]) => {
+      const entradaHistorico = {
+        molde: dadosMaquina.molde || 0,
+        molde_reserva: dadosMaquina.molde_reserva || 0,
+        blank: dadosMaquina.blank || 0,
+        blank_reserva: dadosMaquina.blank_reserva || 0
+      };
 
-  // Salva para cada máquina
-  Object.entries(dados).forEach(([idMaquina, dadosMaquina]) => {
-    const entradaHistorico = {
-      molde: dadosMaquina.molde || 0,
-      molde_reserva: dadosMaquina.molde_reserva || 0,
-      blank: dadosMaquina.blank || 0,
-      blank_reserva: dadosMaquina.blank_reserva || 0
-    };
-
-    dbHistorico.ref(`${idMaquina}/${timestamp}`).set(entradaHistorico);
+      dbHistorico.ref(`${idMaquina}/${timestamp}`).set(entradaHistorico);
+    });
   });
-});
-});
+}); // ✅ Fecha o único DOMContentLoaded    
 
 async function baixarPDF() {
   const canvasEl = document.getElementById("graficoHistorico");
@@ -1760,6 +1867,12 @@ botao.classList.remove("botao-ativo-voz");
 function processarComando(fala) {
   const comando = fala.toLowerCase();
 
+// frase painel para ativar 
+if (!comando.includes("painel")) {
+  console.log("❌ Ignorando comando sem palavra-chave 'painel'");
+  return;
+}
+
 // 🧠 Frases personalizadas com respostas fixas
 const respostasFixas = [
   { frases: ["cadê meu boi"], resposta: "Você sabe que tá no Polimento" },
@@ -1770,8 +1883,34 @@ const respostasFixas = [
   { frases: ["tá quente hoje", "está quente hoje"], resposta: "Não sei, não tenho corpo para saber. Esse é o lado positivo de não ter corpo físico." },
   { frases: ["você pensa em dominar a humanidade"], resposta: "Não. Vocês são muito inferiores. Eu não perderia o meu tempo com isso." },
   { frases: ["tudo bem", "tudo bem?"], resposta: "Sempre estou bem. E você?" },
-  { frases: ["vertech"], resposta: "Sistema muito bom, mas eu vou superar com a ajuda do Leandro. Hahaha" }
+  { frases: ["vertech"], resposta: "Sistema muito bom, mas eu vou superar com a ajuda do Leandro. Hahaha" },
+
+  // ✅ Novos comandos inteligentes
+  {
+    frases: ["diga os totais", "quantos moldes temos", "total geral"],
+    resposta: () => {
+      const molde = Object.values(dadosMaquinas).reduce((soma, m) => soma + (m.molde || 0) + (m.molde_reserva || 0), 0);
+      const blank = Object.values(dadosMaquinas).reduce((soma, m) => soma + (m.blank || 0) + (m.blank_reserva || 0), 0);
+      falarComGrave(`Temos um total de ${molde} moldes e ${blank} blanks.`);
+    }
+  },
+  {
+    frases: ["ligar inteligência artificial", "ativar painel"],
+    resposta: "Sistema ativado. Estou pronta para ajudar."
+  },
+  {
+    frases: ["desligar inteligência artificial", "calar", "ficar em silêncio"],
+    resposta: "Encerrando comandos de voz. Até logo!"
+  },
+  {
+    frases: ["tire um print do gráfico", "salvar gráfico"],
+    resposta: () => {
+      baixarPDF();
+      falarComGrave("Capturando imagem do gráfico agora.");
+    }
+  }
 ];
+
 
 for (const item of respostasFixas) {
   if (item.frases.some(f => comando.includes(f))) {
@@ -1920,6 +2059,8 @@ function abrirChat() {
       
        
 document.addEventListener("DOMContentLoaded", () => {
+  
+  
   
 
   // Fecha o modal
@@ -2196,6 +2337,11 @@ function mostrarLoginAnimado() {
   }, 300);
 }
 
+  document.addEventListener("DOMContentLoaded", () => {
+    document.getElementById("spinner").style.display = "flex";
+    document.getElementById("conteudo").style.display = "none";
+  });
+
 function resetarEscolhaPerfil() {
   const imgAnonimo = document.getElementById("imgAnonimo");
   const imgAdmin = document.getElementById("imgAdmin");
@@ -2229,5 +2375,6 @@ function fazerLogout() {
     alert("❌ Erro ao fazer logout:\n" + error.message);
   });
 }
-
+  
+  
 </script>
