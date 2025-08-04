@@ -912,83 +912,191 @@ body.dark .spinner-texto {
   }
 }
 
-.imagem-opcao {
-  width: 48%;
-  border-radius: 10px;
-  cursor: pointer;
-  border: 2px solid #232323;
-  transition: transform 0.3s ease, box-shadow 0.3s ease, opacity 0.3s ease;
-}
-
-.imagem-opcao:hover {
-  transform: scale(1.05);
-  box-shadow: 0 0 16px rgba(0, 115, 255, 0.25); /* azul mais escuro e elegante */
-}
-
+<style>
 @media (max-width: 768px) {
-  #graficoHistorico {
+  #canvasGraficoTeste {
     width: 100% !important;
     height: auto !important;
   }
 
-  #modalHistorico canvas {
+  #modalGraficoTeste canvas {
     max-width: 100% !important;
     height: auto !important;
   }
+} /* ✅ agora o @media está corretamente fechado */
 
-  #modalHistorico > div {
-    width: 95%;
-    max-height: 90vh;
-  }
+.modal-grafico-teste {
+  position: fixed;
+  top: 0; 
+  left: 0;
+  width: 100%; 
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  z-index: 100000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
-  </style>
-  
-  
-  <script>
+.grafico-container {
+  background: white;
+  width: 100%;
+  max-width: 500px;
+  width: 95%;
+  border-radius: 10px;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+.fechar {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+#graficoHistorico {
+  width: 100% !important;
+  height: 250px !important; /* ou 200px, como quiser */
+  max-height: 60vh;
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  margin-top: 20px;
+}
+
+#modalHistorico {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 10px;
+  overflow: auto; /* permite rolar APENAS se realmente for necessário */
+}
+
+</style>
+<script>
+function iniciarPainelAposSenha() {
+  const modoSalvo = localStorage.getItem("modo_escuro");
+  if (modoSalvo === "1") {
+    document.body.classList.add("dark");
+    const botaoDark = document.querySelector(".darkmode-toggle");
+    if (botaoDark) botaoDark.textContent = " Modo Claro";
+  }
+
+  let ultimaHoraRegistrada = "";
+
+  db.ref("maquinas").on("value", snapshot => {
+    const dados = snapshot.val();
+    if (!dados) {
+      alert("❌ Nenhum dado encontrado no nó 'maquinas'.");
+      return;
+    }
+
+    dadosMaquinas = dados;
+    criarPainel(dados);
+
+    const agora = new Date();
+    const dataFormatada = agora.toLocaleDateString("pt-BR").split("/").reverse().join("-");
+    const horaCheia = agora.getHours().toString().padStart(2, "0") + ":00";
+    const timestamp = `${dataFormatada} ${horaCheia}`;
+
+    if (timestamp === ultimaHoraRegistrada) return;
+
+    ultimaHoraRegistrada = timestamp;
+
+    Object.entries(dados).forEach(([idMaquina, dadosMaquina]) => {
+      const entradaHistorico = {
+        molde: dadosMaquina.molde || 0,
+        molde_reserva: dadosMaquina.molde_reserva || 0,
+        blank: dadosMaquina.blank || 0,
+        blank_reserva: dadosMaquina.blank_reserva || 0
+      };
+
+      dbHistorico.ref(`${idMaquina}/${timestamp}`).set(entradaHistorico);
+    });
+  });
+}
+
 function verificarSenhaSplash() {
   const senha = document.getElementById("senhaSplash").value;
-  const senhaCorreta = "wmoldes"; // 🔐 Altere aqui se quiser outra senha
+  const senhaCorreta = "wmoldes";
 
   const senhaContainer = document.getElementById("senha-container");
   const conteudo = document.getElementById("conteudo");
+  const spinner = document.getElementById("spinner");
 
   if (senha === senhaCorreta) {
-  if (senhaContainer) senhaContainer.style.display = "none";
-  if (conteudo) conteudo.style.display = "block";
-  const spinner = document.getElementById("spinner");
-  if (spinner) spinner.style.display = "none";
-} else {
+    if (senhaContainer) senhaContainer.style.display = "none";
+    if (conteudo) {
+      conteudo.style.opacity = "1";
+      conteudo.style.pointerEvents = "auto";
+      conteudo.style.display = "block";
+    }
+    if (spinner) spinner.style.display = "none";
+
+    iniciarPainelAposSenha();
+  } else {
     alert("❌ Senha incorreta!");
   }
 }
 </script>
-  
+
+<script>
+function iniciarPainelAposSenha() {
+  const modoSalvo = localStorage.getItem("modo_escuro");
+  if (modoSalvo === "1") {
+    document.body.classList.add("dark");
+    const botaoDark = document.querySelector(".darkmode-toggle");
+    if (botaoDark) botaoDark.textContent = " Modo Claro";
+  }
+
+  let ultimaHoraRegistrada = "";
+
+  db.ref("maquinas").on("value", snapshot => {
+    const dados = snapshot.val();
+    if (!dados) {
+      alert("❌ Nenhum dado encontrado no nó 'maquinas'.");
+      return;
+    }
+
+    dadosMaquinas = dados;
+    criarPainel(dados);
+
+    const agora = new Date();
+    const dataFormatada = agora.toLocaleDateString("pt-BR").split("/").reverse().join("-");
+    const horaCheia = agora.getHours().toString().padStart(2, "0") + ":00";
+    const timestamp = `${dataFormatada} ${horaCheia}`;
+
+    if (timestamp === ultimaHoraRegistrada) return;
+
+    ultimaHoraRegistrada = timestamp;
+
+    Object.entries(dados).forEach(([idMaquina, dadosMaquina]) => {
+      const entradaHistorico = {
+        molde: dadosMaquina.molde || 0,
+        molde_reserva: dadosMaquina.molde_reserva || 0,
+        blank: dadosMaquina.blank || 0,
+        blank_reserva: dadosMaquina.blank_reserva || 0
+      };
+
+      dbHistorico.ref(`${idMaquina}/${timestamp}`).set(entradaHistorico);
+    });
+  });
+}
+</script>
+
 </head>
 <body>
      
-    <!-- CAMPO DE SENHA AQUI -->
-<div id="senha-container" style="margin-top: 30px; text-align: center;">
-  <input
-    id="senhaSplash"
-    type="password"
-    placeholder="🔐 Digite a senha para acessar"
-    style="padding: 10px; border-radius: 6px; border: 1px solid #ccc; font-size: 1rem; margin-bottom: 10px; width: 80%; max-width: 300px;"
-  />
-  <br />
-  <button onclick="verificarSenhaSplash()" style="padding: 10px 16px; border: none; background: #1f2937; color: white; border-radius: 6px; cursor: pointer;">
-    Entrar
-  </button>
-</div>
-
-<!-- SPINNER CENTRALIZADO COM CONTROLE -->
+     <!-- SPINNER CENTRALIZADO COM CONTROLE -->
 <div id="spinner" style="
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 100000;
-  background: transparent;
+  position: relative;
+  margin: 40px auto 0 auto;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1017,7 +1125,7 @@ function verificarSenhaSplash() {
     margin-top: 20px;
     font-size: 16px;
     font-weight: bold;
-    background: linear-gradient(to right, #2563eb, #93c5fd);
+    background: linear-gradient(to bottom, #2563eb, #93c5fd);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     animation: fadeIn 1s ease-in-out;
@@ -1039,7 +1147,7 @@ function verificarSenhaSplash() {
   0%   { content: "."; }
   33%  { content: ".."; }
   66%  { content: "..."; }
-  100% { content: "."; }
+  100% { content: "...."; }
 }
 .pontos::after {
   content: ".";
@@ -1047,9 +1155,106 @@ function verificarSenhaSplash() {
 }
 </style>
      
-<div id="conteudo">
+     
+    <!-- CAMPO DE SENHA COM BOTÃO DE OLHO -->
+<div id="senha-container" style="margin-top: 30px; text-align: center;">
+  <div style="position: relative; display: inline-block; width: 80%; max-width: 300px;">
+    <input
+      id="senhaSplash"
+      type="password"
+      placeholder="🔐 Digite a senha para acessar"
+      style="padding: 10px 40px 10px 10px; border-radius: 6px; border: 1px solid #ccc; font-size: 1rem; width: 100%;"
+    />
+    <!-- ÍCONE DE OLHO MINIMALISTA -->
+    <span onclick="toggleSenhaVisibility()" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer;">
+      <svg id="iconeOlho" width="32" height="32" viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="2">
+        <!-- Sobrancelha -->
+        <line id="sobrancelha" x1="16" y1="18" x2="48" y2="18" />
+        <!-- Forma do olho -->
+        <path id="olhoAberto" d="M12 32 Q32 52 52 32 Q32 12 12 32 Z" fill="none"/>
+        <circle id="pupila" cx="32" cy="32" r="4" fill="#000" />
+        <!-- Olho fechado (linha) -->
+        <line id="olhoFechado" x1="16" y1="32" x2="48" y2="32" style="display: none;" />
+      </svg>
+    </span>
+  </div>
+  <br />
+  <button onclick="verificarSenhaSplash()" style="margin-top: 10px; padding: 10px 16px; border: none; background: #1f2937; color: white; border-radius: 6px; cursor: pointer;">
+    Entrar
+  </button>
+</div>
+
+<script>
+  const inputSenha = document.getElementById("senhaSplash");
+  const olhoAberto = document.getElementById("olhoAberto");
+  const olhoFechado = document.getElementById("olhoFechado");
+  const pupila = document.getElementById("pupila");
+  const iconeOlho = document.getElementById("iconeOlho");
+  let senhaVisivel = false;
+
+  // Enter = botão
+  inputSenha.addEventListener("keydown", function (event) {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      document.querySelector("button[onclick='verificarSenhaSplash()']").click();
+    }
+  });
+
+  function toggleSenhaVisibility() {
+    senhaVisivel = !senhaVisivel;
+    inputSenha.type = senhaVisivel ? "text" : "password";
+
+    if (senhaVisivel) {
+      olhoAberto.style.display = "inline";
+      olhoFechado.style.display = "none";
+      pupila.style.display = "inline";
+      iconeOlho.classList.add("piscando");
+    } else {
+      olhoAberto.style.display = "none";
+      olhoFechado.style.display = "inline";
+      pupila.style.display = "none";
+      iconeOlho.classList.remove("piscando");
+    }
+  }
+</script>
+
+<style>
+  @keyframes piscar {
+    0%, 90%, 100% {
+      opacity: 1;
+    }
+    95% {
+      opacity: 0;
+    }
+  }
+
+  .piscando #olhoAberto, .piscando #pupila {
+    animation: piscar 3s infinite;
+  }
+</style>
+
+<!-- SCRIPT: Enter + Mostrar/Ocultar senha -->
+<script>
+  // Detectar ENTER e clicar no botão
+  document.getElementById("senhaSplash").addEventListener("keydown", function (event) {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      document.querySelector("button[onclick='verificarSenhaSplash()']").click();
+    }
+  });
+
+  // Alternar visibilidade da senha
+  function toggleSenhaVisibility() {
+    const input = document.getElementById("senhaSplash");
+    input.type = input.type === "password" ? "text" : "password";
+  }
+</script>
+
+<div id="conteudo" style="opacity: 0; pointer-events: none; display: block; transition: opacity 0.4s ease;">
     
   <h1>Painel de Produção</h1>
+  
+  
   
   <div id="modalInfo" class="modal-info" style="display:none;">
   <div class="modal-content-info" style="position: relative;">
@@ -1172,6 +1377,74 @@ function verificarSenhaSplash() {
   </div>
 </div>
   <div id="totais"></div>
+  
+  <!-- MODAL DE HISTÓRICO -->
+<div id="modalHistorico" class="modalGraficoTeste" style="display: none;">
+  <div class="grafico-container" style="
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    width: 95%;
+    max-width: 800px;
+    max-height: 90vh;
+    overflow-y: auto;
+  ">
+    <h2 id="tituloModal" style="margin-bottom: 20px;">Histórico</h2>
+
+    <!-- Filtros -->
+    <div class="filtro-container">
+      <div class="grupo">
+        <label for="diaSelecionado">📅 Dia:</label>
+        <input type="date" id="diaSelecionado" class="campo-input" />
+      </div>
+
+      <div class="grupo">
+        <label for="horaInicio">⏰ Hora início:</label>
+        <input type="time" id="horaInicio" value="01:00" class="campo-input" />
+      </div>
+
+      <div class="grupo">
+        <label for="horaFim">⏳ Hora fim:</label>
+        <input type="time" id="horaFim" value="23:00" class="campo-input" />
+      </div>
+
+      <div class="grupo">
+        <button onclick="filtrarHistoricoHora()" class="botao-Azul">🔍 Filtrar</button>
+        <button onclick="baixarPDF()" class="botao-Azul">📄 PDF</button>
+      </div>
+    </div>
+
+    <!-- Tipo de gráfico -->
+    <div class="grupo">
+      <label for="tipoGrafico">📐 Tipo de Gráfico:</label>
+      <select id="tipoGrafico" class="campo-input">
+        <option value="bar">📊 Colunas</option>
+        <option value="line">📈 Linha</option>
+      </select>
+    </div>
+
+    <!-- Tipo de dado -->
+    <div class="grupo">
+      <label for="filtroTipoDado">📦 Visualizar:</label>
+      <select id="filtroTipoDado" class="campo-input">
+        <option value="ambos">🔀 Total </option>
+        <option value="maquina">👷 Somente na Produção </option>
+        <option value="reserva">📦 Somente na Corretiva</option>
+      </select>
+    </div>
+
+<div style="width: 100%; max-width: 100%; height: auto;">
+  <canvas id="graficoHistorico" style="width: 100%; height: 250px;"></canvas>
+</div>
+
+    <!-- Fechar -->
+    <div style="text-align: center; margin-top: 20px;">
+      <button onclick="fecharModalHistorico()" class="botao-Azul">❌ Fechar</button>
+    </div>
+  </div>
+</div>
+
+  
   <div id="painel">
       
  <div id="spinner" class="spinner-loader">  
@@ -1188,61 +1461,71 @@ function verificarSenhaSplash() {
   </div>
 </div>
 
-  <!-- MODAL DE HISTÓRICO -->
-  <div id="modalHistorico" style="display:none;
-   position:fixed;
-    top:0;
-    left:0;
-    width:100%;
-    height:100%;
-    background-color:rgba(0,0,0,0.7);
-    z-index:100000;
-    justify-content:center;    
-    align-items:center;"">
-        <div style="background:white; padding:20px; border-radius:10px; max-width:90%; max-height:100%; overflow:auto; position:relative;">
-      <button onclick="fecharModal()" style="position:absolute; top:10px; right:10px;">❌</button>
-      <h2 id="tituloModal"></h2>
-      <div class="filtro-container">
-  <div class="grupo">
-    <label for="diaSelecionado">📅 Dia:</label>
-    <input type="date" id="diaSelecionado" class="campo-input" />
-  </div>
+ <!-- MODAL DE HISTÓRICO -->
+<div id="modalHistorico" class="modalGraficoTeste" style="display: none;">
+  <div class="grafico-container" style="
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    width: 95%;
+    max-width: 800px;
+    max-height: 90vh;
+    overflow-y: auto;
+  ">
+    <h2 id="tituloModal" style="margin-bottom: 20px;">Histórico</h2>
 
-  <div class="grupo">
-    <label for="horaInicio">⏰ Hora início:</label>
-    <input type="time" id="horaInicio" value="01:00" class="campo-input" />
-  </div>
+    <!-- Filtros -->
+    <div class="filtro-container">
+      <div class="grupo">
+        <label for="diaSelecionado">📅 Dia:</label>
+        <input type="date" id="diaSelecionado" class="campo-input" />
+      </div>
 
-  <div class="grupo">
-    <label for="horaFim">⏳ Hora fim:</label>
-    <input type="time" id="horaFim" value="23:00" class="campo-input" />
-  </div>
+      <div class="grupo">
+        <label for="horaInicio">⏰ Hora início:</label>
+        <input type="time" id="horaInicio" value="01:00" class="campo-input" />
+      </div>
 
-  <div class="grupo">
-    <button onclick="filtrarHistoricoHora()" class="botao-Azul">🔍 Filtrar</button>
-    <button onclick="baixarPDF()" class="botao-Azul">📄 PDF</button>
-  </div>
-</div>
-      <canvas id="graficoHistorico" width="140" height="200"></canvas>
+      <div class="grupo">
+        <label for="horaFim">⏳ Hora fim:</label>
+        <input type="time" id="horaFim" value="23:00" class="campo-input" />
+      </div>
 
-<div class="grupo">
-  <label for="tipoGrafico">📐 Tipo de Gráfico:</label>
-  <select id="tipoGrafico" class="campo-input">
-    <option value="bar">📊 Colunas</option>
-    <option value="line">📈 Linha</option>
-  </select>
-</div>
-<div class="grupo">
-  <label for="filtroTipoDado">📦 Visualizar:</label>
-  <select id="filtroTipoDado" class="campo-input">
-    <option value="ambos">🔀 Total </option>
-    <option value="maquina">👷 Somente na Produção </option>
-    <option value="reserva">📦 Somente na Corretiva</option>
-  </select>
-</div>
+      <div class="grupo">
+        <button onclick="filtrarHistoricoHora()" class="botao-Azul">🔍 Filtrar</button>
+        <button onclick="baixarPDF()" class="botao-Azul">📄 PDF</button>
+      </div>
+    </div>
 
+    <!-- Tipo de gráfico -->
+    <div class="grupo">
+      <label for="tipoGrafico">📐 Tipo de Gráfico:</label>
+      <select id="tipoGrafico" class="campo-input">
+        <option value="bar">📊 Colunas</option>
+        <option value="line">📈 Linha</option>
+      </select>
+    </div>
+
+    <!-- Tipo de dado -->
+    <div class="grupo">
+      <label for="filtroTipoDado">📦 Visualizar:</label>
+      <select id="filtroTipoDado" class="campo-input">
+        <option value="ambos">🔀 Total </option>
+        <option value="maquina">👷 Somente na Produção </option>
+        <option value="reserva">📦 Somente na Corretiva</option>
+      </select>
+    </div>
+
+    <!-- Gráfico -->
+
+    <!-- Fechar -->
+    <div style="text-align: center; margin-top: 20px;">
+      <button onclick="fecharModalHistorico()" class="botao-Azul">❌ Fechar</button>
     </div>
   </div>
+</div>
+
+
 
 </body>
   <script>
@@ -1278,6 +1561,7 @@ const db = appPrincipal.database();
 const appHistorico = firebase.initializeApp(firebaseConfigHistorico, "historico");
 const dbHistorico = appHistorico.database();
 
+
 let dadosMaquinas = {};
 let mostrarCriticos = false;
 const charts = {};
@@ -1293,6 +1577,8 @@ function getCor(valor) {
   if (valor >= 4) return "#facc15";
   return "#ef4444";
 }
+
+
 
 function criarPainel(dados) {
   const painel = document.getElementById("painel");
@@ -1341,12 +1627,17 @@ function criarPainel(dados) {
     if (m.isCritico && mostrarCriticos) div.classList.add("critica");
     if (m.parada) div.classList.add("parada");
     if (!m.parada) {
+  let id = m.id;
   div.addEventListener("click", function(event) {
-    // Só abre o gráfico se o clique não for em um botão
     if (event.target.tagName !== "BUTTON") {
-      abrirModalHistorico(m.id);
+      abrirModalHistorico(id);
     }
   });
+}
+
+function fecharModalHistorico() {
+  const modal = document.getElementById("modalHistorico");
+  if (modal) modal.style.display = "none";
 }
 
     div.innerHTML = `
@@ -1422,20 +1713,32 @@ function alternarDarkMode() {
 
 function abrirModalHistorico(idMaquina) {
   const modal = document.getElementById("modalHistorico");
-  const titulo = document.getElementById("tituloModal");
+
+  if (!modal) {
+    alert("Erro ao abrir o gráfico (modal não encontrado).");
+    return;
+  }
 
   modal.style.display = "flex";
-  titulo.innerText = "Histórico - Máquina " + idMaquina;
 
-  // Aguarda o modal abrir (para garantir que o canvas esteja visível)
   setTimeout(() => {
-    const container = document.querySelector("#modalHistorico div");
+    const titulo = document.getElementById("tituloModal");
+    if (!titulo) {
+      alert("Erro: título do gráfico não encontrado.");
+      return;
+    }
 
-    // Remove canvas antigo
+    titulo.innerText = "Histórico - Máquina " + idMaquina;
+
+    const container = document.querySelector("#modalHistorico .grafico-container");
+    if (!container) {
+      alert("❌ Falha ao encontrar o container do gráfico.");
+      return;
+    }
+
     const antigo = document.getElementById("graficoHistorico");
     if (antigo) antigo.remove();
 
-    // Cria novo canvas
     const novoCanvas = document.createElement("canvas");
     novoCanvas.id = "graficoHistorico";
     novoCanvas.width = 750;
@@ -1446,7 +1749,7 @@ function abrirModalHistorico(idMaquina) {
 
     if (graficoLinha) graficoLinha.destroy();
 
-    dbHistorico.ref(`${idMaquina}`).once("value")
+    dbHistorico.ref(idMaquina).once("value")
       .then(snapshot => {
         const dados = snapshot.val();
 
@@ -1456,27 +1759,25 @@ function abrirModalHistorico(idMaquina) {
         }
 
         historicoBruto = dados;
-        // Define a data de hoje no campo de filtro de data
-        
-const agora = new Date();
-const ano = agora.getFullYear();
-const mes = String(agora.getMonth() + 1).padStart(2, "0");
-const dia = String(agora.getDate()).padStart(2, "0");
-const hoje = `${ano}-${mes}-${dia}`;
-document.getElementById("diaSelecionado").value = hoje;
 
-filtrarHistoricoHora(); // já aplica o filtro automaticamente
+        const agora = new Date();
+        const ano = agora.getFullYear();
+        const mes = String(agora.getMonth() + 1).padStart(2, "0");
+        const dia = String(agora.getDate()).padStart(2, "0");
+        const hoje = `${ano}-${mes}-${dia}`;
 
-        
+        const inputDia = document.getElementById("diaSelecionado");
+        if (inputDia) inputDia.value = hoje;
+
+        filtrarHistoricoHora();
       })
       .catch(error => {
         alert("❌ Erro ao carregar histórico: " + error.message);
       });
 
-  }, 300);
+  }, 300); // espera o modal aparecer antes de acessar o DOM interno
 }
-
-function fecharModal() {
+function fecharModalHistorico() {
   document.getElementById("modalHistorico").style.display = "none";
 }
 
@@ -1541,152 +1842,148 @@ function filtrarHistoricoHora() {
     alert("❌ Nenhum dado carregado para filtrar.");
     return;
   }
-  
+
   const dadosAgrupados = {};
+  const canvasAntigo = document.getElementById("graficoHistorico");
 
-  const container = document.getElementById("graficoHistorico").parentElement;
-
-// Remover o canvas antigo
-const canvasAntigo = document.getElementById("graficoHistorico");
-if (canvasAntigo) canvasAntigo.remove();
-
-// Criar um novo canvas
-const novoCanvas = document.createElement("canvas");
-novoCanvas.id = "graficoHistorico";
-novoCanvas.style.width = "100%";
-novoCanvas.style.height = "auto";
-container.appendChild(novoCanvas);
-
-const ctx = novoCanvas.getContext("2d");
-
-
-
-// Agrupa os dados por hora, considerando o horário e (opcionalmente) o dia escolhido
-Object.entries(historicoBruto).forEach(([timestamp, valores]) => {
-  const [data, horaCompleta] = timestamp.split(" ");
-  const hora = horaCompleta.slice(0, 2); // Ex: "08"
-
-  // Se uma data foi escolhida, filtra por ela. Se estiver em branco, mostra tudo.
-  if (diaSelecionado && data !== diaSelecionado) return;
-
-  if (horaCompleta >= horaInicio && horaCompleta <= horaFim) {
-    if (!dadosAgrupados[hora]) {
-      dadosAgrupados[hora] = {
-        molde: 0,
-        molde_reserva: 0,
-        blank: 0,
-        blank_reserva: 0
-      };
-    }
-
-    dadosAgrupados[hora].molde += Number(valores.molde || 0);
-    dadosAgrupados[hora].molde_reserva += Number(valores.molde_reserva || 0);
-    dadosAgrupados[hora].blank += Number(valores.blank || 0);
-    dadosAgrupados[hora].blank_reserva += Number(valores.blank_reserva || 0);
+  if (!canvasAntigo) {
+    alert("⚠️ Canvas do gráfico não encontrado.");
+    return;
   }
-});
 
-// Monta os dados para o gráfico
-const labels = Object.keys(dadosAgrupados).map(h => `${h}:00`);
-const tipoSelecionado = document.getElementById("filtroTipoDado").value;
+  const container = canvasAntigo.parentElement;
+  canvasAntigo.remove();
 
-const moldes = Object.values(dadosAgrupados).map(v => {
-  if (tipoSelecionado === "maquina") return v.molde;
-  if (tipoSelecionado === "reserva") return v.molde_reserva;
-  return v.molde + v.molde_reserva;
-});
+  const novoCanvas = document.createElement("canvas");
+  novoCanvas.id = "graficoHistorico";
+  novoCanvas.width = 750;
+  novoCanvas.height = 320;
+  container.appendChild(novoCanvas);
+  const ctx = novoCanvas.getContext("2d");
 
-const blanks = Object.values(dadosAgrupados).map(v => {
-  if (tipoSelecionado === "maquina") return v.blank;
-  if (tipoSelecionado === "reserva") return v.blank_reserva;
-  return v.blank + v.blank_reserva;
-});
+  if (graficoLinha) {
+    graficoLinha.destroy();
+  }
 
-if (labels.length === 0) {
-  alert("❌ Nenhum dado no intervalo escolhido. Exibindo dados completos.");
+  // Agrupa os dados por hora dentro do intervalo de horário e data escolhida
+  Object.entries(historicoBruto).forEach(([timestamp, valores]) => {
+    const [data, horaCompleta] = timestamp.split(" ");
+    const hora = horaCompleta.slice(0, 2); // Ex: "08"
 
-  const todasLabels = Object.keys(historicoBruto).map(l => l.split(" ")[1]);
-  const moldesTodos = Object.values(historicoBruto).map(v => Number(v.molde || 0) + Number(v.molde_reserva || 0));
-  const blanksTodos = Object.values(historicoBruto).map(v => Number(v.blank || 0) + Number(v.blank_reserva || 0));
+    if (data !== diaSelecionado) return;
+
+    if (horaCompleta >= horaInicio && horaCompleta <= horaFim) {
+      if (!dadosAgrupados[hora]) {
+        dadosAgrupados[hora] = { molde: 0, molde_reserva: 0, blank: 0, blank_reserva: 0 };
+      }
+
+      dadosAgrupados[hora].molde += Number(valores.molde || 0);
+      dadosAgrupados[hora].molde_reserva += Number(valores.molde_reserva || 0);
+      dadosAgrupados[hora].blank += Number(valores.blank || 0);
+      dadosAgrupados[hora].blank_reserva += Number(valores.blank_reserva || 0);
+    }
+  });
+
+  const labels = Object.keys(dadosAgrupados).map(h => `${h}:00`);
+  const tipoSelecionado = document.getElementById("filtroTipoDado").value;
+
+  const moldes = Object.values(dadosAgrupados).map(v => {
+    if (tipoSelecionado === "maquina") return v.molde;
+    if (tipoSelecionado === "reserva") return v.molde_reserva;
+    return v.molde + v.molde_reserva;
+  });
+
+  const blanks = Object.values(dadosAgrupados).map(v => {
+    if (tipoSelecionado === "maquina") return v.blank;
+    if (tipoSelecionado === "reserva") return v.blank_reserva;
+    return v.blank + v.blank_reserva;
+  });
 
   const tipoGraficoSelecionado = document.getElementById("tipoGrafico").value;
 
-graficoLinha = new Chart(ctx, {
-  type: tipoGraficoSelecionado,  // vai usar "bar" ou "line"
+  if (labels.length === 0) {
+    alert("❌ Nenhum dado no intervalo escolhido. Exibindo dados completos.");
+
+    const todasLabels = Object.keys(historicoBruto).map(l => l.split(" ")[1]);
+    const moldesTodos = Object.values(historicoBruto).map(v => Number(v.molde || 0) + Number(v.molde_reserva || 0));
+    const blanksTodos = Object.values(historicoBruto).map(v => Number(v.blank || 0) + Number(v.blank_reserva || 0));
+
+    graficoLinha = new Chart(ctx, {
+      type: tipoGraficoSelecionado,
+      data: {
+        labels: todasLabels,
+        datasets: [
+          {
+            label: "Total Moldes",
+            data: moldesTodos,
+            backgroundColor: "#22c55e"
+          },
+          {
+            label: "Total Blanks",
+            data: blanksTodos,
+            backgroundColor: "#3b82f6"
+          }
+        ]
+      },
+      options: {
+        responsive: false,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: true },
+          tooltip: { enabled: true },
+          datalabels: {
+            anchor: 'end',
+            align: 'top',
+            color: '#000',
+            font: { weight: 'bold' },
+            formatter: Math.round
+          }
+        },
+        scales: {
+          x: { title: { display: true, text: "Hora" } },
+          y: { beginAtZero: true }
+        }
+      }
+    });
+    return;
+  }
+
+  graficoLinha = new Chart(ctx, {
+    type: tipoGraficoSelecionado,
     data: {
-      labels: todasLabels,
+      labels: labels,
       datasets: [
         {
           label: "Total Moldes",
-          data: moldesTodos,
-          backgroundColor: "#22c55e"
+          data: moldes,
+          borderColor: "#29b8f4",
+          backgroundColor: "#66aef4",
+          tension: 0.3,
+          fill: false
         },
         {
           label: "Total Blanks",
-          data: blanksTodos,
-          backgroundColor: "#3b82f6"
+          data: blanks,
+          borderColor: "#0f111d",
+          backgroundColor: "#272727",
+          tension: 0.3,
+          fill: false
         }
       ]
     },
     options: {
-  responsive: false,
-  maintainAspectRatio: false,
-  plugins: {
-    legend: { display: true },
-    tooltip: { enabled: true },
-    datalabels: {
-      anchor: 'end',
-      align: 'top',
-      color: '#000',
-      font: { weight: 'bold' },
-      formatter: Math.round
+      responsive: false,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: true }
+      },
+      scales: {
+        x: { title: { display: true, text: "Hora" } },
+        y: { beginAtZero: true }
+      }
     }
-  },
-  scales: {
-    x: { title: { display: true, text: "Hora" } },
-    y: { beginAtZero: true }
-  }
-}
   });
-  return;
-}
-
-const tipoGraficoSelecionado = document.getElementById("tipoGrafico").value;
-graficoLinha = new Chart(ctx, {
-  type: tipoGraficoSelecionado,
-  data: {
-    labels: labels,
-    datasets: [
-  {
-    label: "Total Moldes",
-    data: moldes,
-    borderColor: "#29b8f4",
-    backgroundColor: "#66aef4",
-    tension: 0.3,
-    fill: false
-  },
-  {
-    label: "Total Blanks",
-    data: blanks,
-    borderColor: "#0f111d",
-    backgroundColor: "#272727",
-    tension: 0.3,
-    fill: false
-  }
-]
-  },
-  options: {
-    responsive:false,
-    maintainAspectRatio: false,
-    plugins: { legend: { display: true } },
-    scales: {
-      x: { title: { display: true, text: "Hora" } },
-      y: { beginAtZero: true }
-    }
-  }
-});
-}
-document.addEventListener("DOMContentLoaded", () => {
+}document.addEventListener("DOMContentLoaded", () => {
 
 });
 
@@ -2377,4 +2674,6 @@ function fazerLogout() {
 }
   
   
+  
 </script>
+
