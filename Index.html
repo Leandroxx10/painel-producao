@@ -999,6 +999,7 @@ function iniciarPainelAposSenha() {
 
     dadosMaquinas = dados;
     criarPainel(dados);
+    
 
     const agora = new Date();
     const dataFormatada = agora.toLocaleDateString("pt-BR").split("/").reverse().join("-");
@@ -1088,10 +1089,22 @@ function iniciarPainelAposSenha() {
     });
   });
 }
+
+fetch("https://raw.githubusercontent.com/Leandroxx10/painel-producao/main/dados-prefixos.json")
+  .then(res => res.json())
+  .then(data => {
+    dadosPrefixos = data;
+  })
+  .catch(err => {
+    alert("Erro ao carregar dados dos prefixos.");
+    console.error(err);
+  });
+
 </script>
 
 </head>
 <body>
+    
      
      <!-- SPINNER CENTRALIZADO COM CONTROLE -->
 <div id="spinner" style="
@@ -1254,7 +1267,13 @@ function iniciarPainelAposSenha() {
     
   <h1>Painel de Produção</h1>
   
-  
+  <div>
+  <label>Prefixo:</label>
+  <select onchange="mostrarInfoPrefixo(this.value)">
+    <option value="">Selecione</option>
+    ${dadosPrefixos.map(p => `<option value="${p["Prefixo"]}">${p["Prefixo"]}</option>`).join("")}
+  </select>
+</div>
   
   <div id="modalInfo" class="modal-info" style="display:none;">
   <div class="modal-content-info" style="position: relative;">
@@ -1273,6 +1292,10 @@ function iniciarPainelAposSenha() {
     <div id="infoCampos"></div>
   </div>
 </div>
+  
+  <!-- Choices.js -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
+<script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
   
  <!-- MODAL DE ESCOLHA DE PERFIL -->
 <div id="modalEscolhaPerfil" style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.7); z-index: 999999; justify-content: center; align-items: center;">
@@ -1461,6 +1484,8 @@ function iniciarPainelAposSenha() {
   </div>
 </div>
 
+
+
  <!-- MODAL DE HISTÓRICO -->
 <div id="modalHistorico" class="modalGraficoTeste" style="display: none;">
   <div class="grafico-container" style="
@@ -1562,6 +1587,7 @@ const appHistorico = firebase.initializeApp(firebaseConfigHistorico, "historico"
 const dbHistorico = appHistorico.database();
 
 
+let dadosPrefixos = {};
 let dadosMaquinas = {};
 let mostrarCriticos = false;
 const charts = {};
@@ -1629,11 +1655,47 @@ function criarPainel(dados) {
     if (!m.parada) {
   let id = m.id;
   div.addEventListener("click", function(event) {
-    if (event.target.tagName !== "BUTTON") {
-      abrirModalHistorico(id);
+    if (!["BUTTON", "SELECT", "OPTION", "LABEL"].includes(event.target.tagName)) {
     }
   });
 }
+
+document.querySelectorAll(".prefixo-select").forEach(select => {
+  const idMaquina = select.dataset.id;
+
+  // Captura o valor original antes da modificação
+  let valorOriginal = select.value;
+
+  // Evita recriar Choices se já existe
+  if (select.choicesInstance) {
+    select.choicesInstance.destroy();
+  }
+
+  const choices = new Choices(select, {
+    searchEnabled: true,
+    itemSelectText: "",
+    shouldSort: false
+  });
+
+  // Salva a instância no elemento (para evitar bug na recriação)
+  select.choicesInstance = choices;
+
+  // Marca como alterado manualmente só quando o usuário clicar no menu
+  let usuarioAlterou = false;
+  select.addEventListener("showDropdown", () => {
+    usuarioAlterou = true;
+  });
+
+  // Só salva se for realmente alterado manualmente
+  select.addEventListener("change", (e) => {
+    const novoValor = e.target.value;
+    if (usuarioAlterou && novoValor !== valorOriginal) {
+      salvarPrefixoMaquina(idMaquina, novoValor);
+      valorOriginal = novoValor; // Atualiza para evitar salvar de novo
+    }
+    usuarioAlterou = false; // Reseta o controle
+  });
+});
 
 function fecharModalHistorico() {
   const modal = document.getElementById("modalHistorico");
@@ -1645,7 +1707,19 @@ function fecharModalHistorico() {
   <input type="checkbox" class="checkbox-parada" ${m.parada ? 'checked' : ''} 
     onchange="alternarParada('${m.id}', this.checked)" onclick="event.stopPropagation()" />
         
-  <h3 onclick="event.stopPropagation()">Máquina ${m.id}</h3>
+<h3>Máquina ${m.id} <span class="prefixo">(${m.prefixo || "Sem prefixo"})</span></h3>
+
+<div class="select-wrapper">
+  <label style="font-size:0.8rem;">Prefixo:</label>
+  <select class="prefixo-select" data-id="${m.id}">
+    <option value="">-- Selecione --</option>
+    ${dadosPrefixos.map(p =>
+      `<option value="${p.Prefixo}" ${p.Prefixo === m.prefixo ? "selected" : ""}>${p.Prefixo}</option>`
+    ).join("")}
+  </select>
+</div>
+
+
 
   <p>Molde: ${m.molde} | Reserva: ${m.moldeR}</p>
   <p>Blank: ${m.blank} | Reserva: ${m.blankR}</p>
@@ -2502,80 +2576,37 @@ function fazerLogout() {
   });
 }
 
-function editarPrefixo(idMaquina) {
-  const span = document.getElementById(`prefixo-${idMaquina}`);
-  const input = document.getElementById(`inputPrefixo-${idMaquina}`);
-  const botao = document.getElementById(`botaoPrefixo-${idMaquina}`);
-
-  // Detecta se está escondido (modo visualizar) ou visível (modo edição)
-  const estaEditando = input.style.display !== "none";
-
-  if (!estaEditando) {
-    // Modo edição
-    input.style.display = "inline-block";
-    span.style.display = "none";
-    botao.textContent = "💾";
-    input.focus();
-  } else {
-    // Salvar
-    const novoPrefixo = input.value.trim();
-    firebase.database().ref(`maquinas/${idMaquina}/prefixo`).set(novoPrefixo)
-      .then(() => {
-        span.textContent = novoPrefixo;
-        input.style.display = "none";
-        span.style.display = "inline-block";
-        botao.textContent = "✏️";
-      })
-      .catch(err => {
-        alert("Erro ao salvar prefixo: " + err.message);
-      });
-  }
-}
-
-
 function abrirModalInformacoesMaquina(idMaquina) {
-  const modal = document.createElement("div");
-  modal.className = "modal-central";
-  modal.innerHTML = `
-    <div class="modal-content-central">
-      <h2>Informações: Máquina ${idMaquina}</h2>
-      <div id="infoCampos-${idMaquina}">Carregando...</div>
-      <button onclick="document.body.removeChild(this.closest('.modal-central'))">Fechar</button>
-    </div>
+  const dados = dadosMaquinas[idMaquina];
+  const prefixo = dados?.prefixo;
+
+  if (!prefixo || !dadosPrefixos || !Array.isArray(dadosPrefixos)) {
+    alert("❌ Prefixo não encontrado para esta máquina.");
+    return;
+  }
+
+  const info = dadosPrefixos.find(p => p.Prefixo === prefixo);
+
+  if (!info) {
+    alert("❌ Nenhuma informação encontrada para o prefixo " + prefixo);
+    return;
+  }
+
+  const infoCampos = document.getElementById("infoCampos");
+  if (!infoCampos) return;
+
+  // Exibe dinamicamente todas as chaves/valores do prefixo
+  infoCampos.innerHTML = `
+    <p><strong>Máquina:</strong> ${idMaquina}</p>
+    <p><strong>Prefixo:</strong> ${prefixo}</p>
+    ${Object.entries(info)
+      .filter(([k]) => k !== "Prefixo")
+      .map(([chave, valor]) => `<p><strong>${chave}:</strong> ${valor}</p>`)
+      .join("")}
   `;
-  document.body.appendChild(modal);
 
-  firebase.database().ref("informacoes/" + idMaquina).once("value").then(snapshot => {
-    const dados = snapshot.val() || {};
-    const campos = ["prefixo", "molde", "blank", "neckrings", "thimbles", "machos", "coolers", "funis", "pinças", "corredor", "tipoProcesso"];
-    let html = "";
-
-    campos.forEach(campo => {
-      const valor = dados[campo] || "";
-      html += `
-        <label for="${campo}">${campo.charAt(0).toUpperCase() + campo.slice(1)}:</label>
-        <input id="${campo}" type="text" value="${valor}" onchange="salvarCampoInfo('${idMaquina}', '${campo}', this.value)" />
-      `;
-    });
-
-    const infoDiv = document.getElementById(`infoCampos-${idMaquina}`);
-    if (infoDiv) {
-      infoDiv.innerHTML = html;
-    }
-  });
+  document.getElementById("modalInfo").style.display = "flex";
 }
-
-function salvarCampoInfo(idMaquina, campo, valor) {
-  firebase.database().ref(`informacoes/${idMaquina}/${campo}`).set(valor)
-    .then(() => {
-      console.log(`✅ Campo "${campo}" salvo com sucesso para a máquina ${idMaquina}.`);
-    })
-    .catch((error) => {
-      console.error(`❌ Erro ao salvar campo "${campo}":`, error);
-      alert("Erro ao salvar informação: " + error.message);
-    });
-}
-
 
 function filtrarMensagensChat() {
   const termo = document.getElementById("buscaMensagem").value.toLowerCase();
@@ -2673,7 +2704,38 @@ function fazerLogout() {
   });
 }
   
+  function mostrarInfoPrefixo(prefixo) {
+  if (!prefixo) return;
+
+  const item = dadosPrefixos.find(p => p["Prefixo"] === prefixo);
+  if (!item) {
+    alert("❌ Prefixo não encontrado.");
+    return;
+  }
+
+  const infoHTML = Object.entries(item)
+    .map(([chave, valor]) => `<p><strong>${chave}:</strong> ${valor ?? "-"}</p>`)
+    .join("");
+
+  const modal = document.getElementById("modalInfo");
+  const infoCampos = document.getElementById("infoCampos");
+
+  infoCampos.innerHTML = infoHTML;
+  modal.style.display = "flex";
+}
   
+  function salvarPrefixoMaquina(idMaquina, novoPrefixo) {
+  db.ref("maquinas/" + idMaquina + "/prefixo").set(novoPrefixo)
+    .then(() => {
+      alert("✅ Prefixo atualizado!");
+    })
+    .catch(err => {
+      alert("❌ Erro ao salvar prefixo: " + err.message);
+    });
+}
+  
+  function fecharModalInfo() {
+  document.getElementById("modalInfo").style.display = "none";
+}
   
 </script>
-
