@@ -1,20 +1,13 @@
 [
   {
-    "Prefixo": "LB-0519-N1",
+    "Prefixo": "LB-0271-N1",
     "Moldes": null,
-    "Blanks": "LB519",
-    "Neck ring": "MACHO 106 SECO",
-    "Aneis de Guia": "M",
-    "Thimbles": "AV 02",
-    "Machos": "01",
-    "Baffles": "Em uso"
-    "Baffles Plug": "Em uso"
-    "Funis": "Em uso"
-    "Fundos": "Em uso"
-    "Fundos": "Em uso"
-    "Fundos Plug": "Em uso"
-    "Sopradores": "Em uso"
-    "Pinças": "Em uso"
+    "Tipo": "Bloco",
+    "Descrição": "MACHO 271 NI",
+    "Tamanho": "P",
+    "Avenida": "AV 02",
+    "Linha": "01",
+    "Status": "Em uso"
   },
   {
     "Prefixo": "LB-0271-N1",
