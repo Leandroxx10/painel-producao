@@ -1,13 +1,20 @@
 [
   {
-    "Prefixo": "LB-0106-S",
-    "Moldes": null,
-    "Tipo": "Bloco",
-    "Descrição": "MACHO 106 SECO",
-    "Tamanho": "M",
-    "Avenida": "AV 02",
-    "Linha": "01",
-    "Status": "Em uso"
+    "Prefixo": "LB-0519-N1",
+    "Moldes": LB519,
+    "Blanks": "LB519",
+    "Neck ring": "MACHO 106 SECO",
+    "Aneis de Guia": "M",
+    "Thimbles": "AV 02",
+    "Machos": "01",
+    "Baffles": "Em uso"
+    "Baffles Plug": "Em uso"
+    "Funis": "Em uso"
+    "Fundos": "Em uso"
+    "Fundos": "Em uso"
+    "Fundos Plug": "Em uso"
+    "Sopradores": "Em uso"
+    "Pinças": "Em uso"
   },
   {
     "Prefixo": "LB-0271-N1",
