@@ -265,7 +265,7 @@
     /* ===== CARDS DE MÁQUINAS ===== */
     #painel {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
       gap: 15px;
       margin-top: 20px;
     }
@@ -662,7 +662,7 @@
       position: fixed;
       inset: 0;
       background: rgba(0,0,0,0.6);
-      z-index: 9999;
+      z-index: 100001; /* Z-index maior que o chat */
       padding: 10px;
       overflow: auto;
       justify-content: center;
@@ -1188,7 +1188,7 @@
           <div class="select-wrapper">
             <label>Prefixo:</label>
             <select class="prefixo-select" data-id="${m.id}">
-              <option value="">-- Selecione --</option>
+              <option value="">-- DIGITE O PREFIXO --</option>
               ${dadosPrefixos.map(p => 
                 `<option value="${p.Prefixo}" ${p.Prefixo === m.prefixo ? "selected" : ""}>${p.Prefixo}</option>`
               ).join("")}
@@ -1200,6 +1200,10 @@
           <canvas id="grafico-${m.id}"></canvas>
           <button type="button" class="botao-info" onclick="abrirModalInformacoesMaquina('${m.id}')">
             ℹ️ Informações
+          </button>
+          <!-- Botão para abrir histórico -->
+          <button type="button" class="botao-info" style="margin-top: 10px; background: #3b82f6;" onclick="abrirModalHistorico('${m.id}')">
+            📊 Histórico
           </button>
         `;
 
@@ -1683,12 +1687,16 @@
       modalChat.style.display = "flex";
       carregarMensagens();
 
-      const user = appHistorico.auth().currentUser;
-      if (user) {
-        document.getElementById("emailUsuario").textContent = user.email.split("@")[0].replace(/\./g, " ");
-      } else {
-        document.getElementById("modalEscolhaPerfil").style.display = "flex";
-      }
+      // Verificar se já está autenticado com sessão persistente
+      firebase.auth().onAuthStateChanged(user => {
+        if (user) {
+          // Usuário já logado
+          document.getElementById("emailUsuario").textContent = user.email.split("@")[0].replace(/\./g, " ");
+        } else {
+          // Mostrar opções de login
+          document.getElementById("modalEscolhaPerfil").style.display = "flex";
+        }
+      });
     }
 
     function fecharChat() {
@@ -1747,7 +1755,7 @@
     function enviarMensagem() {
       const input = document.getElementById("mensagemChat");
       const texto = input.value.trim();
-      const user = appHistorico.auth().currentUser;
+      const user = firebase.auth().currentUser;
 
       if (!user) {
         alert("⚠️ Faça login para enviar mensagens.");
@@ -1828,9 +1836,11 @@
         return;
       }
 
-      const authHistorico = appHistorico.auth();
-
-      authHistorico.signInWithEmailAndPassword(email, senha)
+      // Configurar persistência de sessão
+      firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+        .then(() => {
+          return firebase.auth().signInWithEmailAndPassword(email, senha);
+        })
         .then(() => {
           document.getElementById("modalEscolhaPerfil").style.display = "none";
           document.getElementById("emailUsuario").textContent = email.split("@")[0].replace(/\./g, " ");
@@ -1842,7 +1852,7 @@
     }
 
     function fazerLogout() {
-      appHistorico.auth().signOut().then(() => {
+      firebase.auth().signOut().then(() => {
         document.getElementById("modalChat").style.display = "none";
         document.getElementById("modalEscolhaPerfil").style.display = "flex";
         resetarEscolhaPerfil();
