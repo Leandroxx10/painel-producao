@@ -8,7 +8,6 @@
   <!-- Bibliotecas externas -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -27,6 +26,7 @@
       --cor-positiva: #22c55e;
       --cor-alerta: #facc15;
       --cor-critica: #ef4444;
+      --gap-base: 15px; /* Espaçamento base entre cards */
     }
 
     body.dark {
@@ -50,6 +50,7 @@
       transition: background 0.4s ease, color 0.4s ease;
       min-height: 100vh;
       line-height: 1.6;
+      overflow-x: hidden;
     }
 
     h1 {
@@ -265,9 +266,10 @@
     /* ===== CARDS DE MÁQUINAS ===== */
     #painel {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-      gap: 15px;
-      margin-top: 20px;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: var(--gap-base);
+      margin-top: 15px;
+      transition: gap 0.3s ease;
     }
 
     .maquina {
@@ -281,10 +283,12 @@
       border-right: 2px solid #397ee5;
       border-bottom: 1px solid #e8e8e8;
       border-top: 1px solid #e8e8e8;
-      transition: transform 0.3s ease, background 0.3s ease;
+      transition: transform 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
       height: 100%;
       display: flex;
       flex-direction: column;
+      transform-origin: center center;
+      min-height: 320px;
     }
 
     .maquina:hover {
@@ -383,11 +387,12 @@
       margin-bottom: 4px;
     }
 
+    /* ATUALIZAÇÃO: Prefixo em negrito azul e maior */
     .prefixo {
-      font-weight: normal;
+      font-weight: bold;
       color: #2563eb;
       margin-left: 6px;
-      font-size: 0.9rem;
+      font-size: 1.05rem; /* Tamanho aumentado */
     }
 
     .botao-info {
@@ -467,202 +472,13 @@
       cursor: pointer;
     }
 
-    #modalEscolhaPerfil {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.7);
-      z-index: 999999;
-      justify-content: center;
-      align-items: center;
-    }
-
-    .perfil-container {
-      background: white;
-      padding: 30px;
-      border-radius: 12px;
-      max-width: 90%;
-      width: 500px;
-      text-align: center;
-    }
-
-    .perfil-container h2 {
-      margin-bottom: 20px;
-      color: #1f2937;
-    }
-
-    .opcoes-container {
-      display: flex;
-      gap: 16px;
-      justify-content: center;
-      align-items: center;
-      transition: all 0.3s ease;
-      margin-bottom: 20px;
-    }
-
-    .imagem-opcao {
-      width: 48%;
-      border-radius: 10px;
-      cursor: pointer;
-      transition: transform 0.3s ease, opacity 0.3s ease;
-      border: 2px solid #ccc;
-    }
-
-    .imagem-opcao:hover {
-      transform: scale(1.05);
-    }
-
-    #formLogin {
-      margin-top: 20px;
-      display: none;
-    }
-
-    #formLogin input {
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 8px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-    }
-
-    #formLogin button {
-      width: 100%;
-      padding: 10px;
-      background: #000;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      margin-top: 10px;
-    }
-
-    .fechar-perfil {
-      margin-top: 20px;
-      background: #6b7280;
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-
-    /* ===== CHAT AO VIVO ===== */
-    #modalChat {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.6);
-      z-index: 100000;
-      justify-content: center;
-      align-items: center;
-    }
-
-    .chat-container {
-      background: white;
-      padding: 20px;
-      border-radius: 10px;
-      width: 90%;
-      max-width: 600px;
-      max-height: 90%;
-      overflow: auto;
-      position: relative;
-    }
-
-    .fechar-chat {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      background: none;
-      border: none;
-      font-size: 1.2rem;
-      color: #444;
-      cursor: pointer;
-    }
-
-    #infoUsuario {
-      font-size: 0.9rem;
-      margin-bottom: 10px;
-      color: #1f2937;
-    }
-
-    #emailUsuario {
-      font-weight: bold;
-    }
-
-    #buscaMensagem {
-      width: 100%;
-      padding: 8px;
-      margin-bottom: 10px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-    }
-
-    #containerMensagens {
-      max-height: 300px;
-      overflow-y: auto;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      margin-bottom: 10px;
-    }
-
-    #tabelaMensagens {
-      width: 100%;
-      border-collapse: collapse;
-    }
-
-    #tabelaMensagens th {
-      background: #1f2937;
-      color: white;
-      padding: 8px;
-      position: sticky;
-      top: 0;
-      z-index: 1;
-    }
-
-    #tabelaMensagens td {
-      padding: 8px;
-      color: #1f2937;
-      border-bottom: 1px solid #ddd;
-    }
-
-    #tabelaMensagens tr:nth-child(even) {
-      background-color: #f3f4f6;
-    }
-
-    #tabelaMensagens tr:hover {
-      background-color: #e0f2fe;
-    }
-
-    .chat-input-container {
-      display: flex;
-      gap: 10px;
-      margin-top: 10px;
-    }
-
-    #mensagemChat {
-      flex: 1;
-      padding: 10px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-    }
-
-    .btn-enviar {
-      padding: 10px 20px;
-      background: black;
-      color: white;
-      border: none;
-      border-radius: 6px;
-    }
-
     /* ===== HISTÓRICO ===== */
     #modalHistorico {
       display: none;
       position: fixed;
       inset: 0;
       background: rgba(0,0,0,0.6);
-      z-index: 100001; /* Z-index maior que o chat */
+      z-index: 100001;
       padding: 10px;
       overflow: auto;
       justify-content: center;
@@ -770,28 +586,9 @@
       right: 20px;
     }
 
-    #btnChat {
-      bottom: 80px;
-      right: 20px;
-      background: #0f172a;
-    }
-
     .botao-ativo-voz {
       animation: pulsarBotao 1s ease-in-out infinite;
       background-color: #dc2626 !important;
-    }
-
-    #contadorMensagens {
-      position: absolute;
-      top: -6px;
-      right: -6px;
-      background: #e11d48;
-      color: white;
-      padding: 4px 7px;
-      border-radius: 50%;
-      font-size: 0.75rem;
-      display: none;
-      font-weight: bold;
     }
 
     /* ===== RESPONSIVIDADE ===== */
@@ -858,6 +655,63 @@
       content: ".";
       animation: animarPontos 1.2s infinite steps(1);
     }
+
+    /* ATUALIZAÇÃO: Estilos para controle de zoom */
+    .zoom-control {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+
+    .zoom-control label {
+      font-size: 0.9rem;
+      color: var(--cor-texto);
+    }
+
+    .zoom-control input {
+      width: 120px;
+    }
+
+    .zoom-value {
+      min-width: 40px;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    .zoom-control button {
+      padding: 8px 12px;
+      background: #3b82f6;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    /* ATUALIZAÇÃO: Controle de espaçamento entre cards */
+    .gap-control {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+
+    .gap-control label {
+      font-size: 0.9rem;
+      color: var(--cor-texto);
+    }
+
+    .gap-control input {
+      width: 120px;
+    }
+
+    .gap-value {
+      min-width: 40px;
+      text-align: center;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
@@ -898,7 +752,24 @@
         <button class="darkmode-toggle" onclick="alternarDarkMode()">Modo Escuro</button>
         <button onclick="alternarFullscreen()">🖥️ Tela Cheia</button>
         <button onclick="lerAlertasCriticos()">🔊 Ouvir Críticos</button>
+        <!-- Botão de logout -->
+        <button onclick="logout()">🚪 Sair</button>
       </div>
+    </div>
+    
+    <!-- Controles de zoom e espaçamento -->
+    <div class="zoom-control">
+      <label for="zoomSlider">🔍 Zoom dos Cards:</label>
+      <input type="range" id="zoomSlider" min="70" max="120" value="100" step="5" oninput="atualizarZoom(this.value)" />
+      <span class="zoom-value" id="zoomValue">100%</span>
+      <button onclick="resetarZoom()">🔄 Padrão</button>
+    </div>
+    
+    <div class="gap-control">
+      <label for="gapSlider">↔️ Espaçamento entre Cards:</label>
+      <input type="range" id="gapSlider" min="5" max="20" value="10" step="1" oninput="atualizarGap(this.value)" />
+      <span class="gap-value" id="gapValue">10px</span>
+      <button onclick="resetarGap()">🔄 Padrão</button>
     </div>
     
     <div id="totais"></div>
@@ -914,56 +785,6 @@
     </div>
   </div>
 
-  <!-- Modal de Escolha de Perfil -->
-  <div id="modalEscolhaPerfil">
-    <div class="perfil-container">
-      <h2>Como deseja acessar o chat?</h2>
-      <div class="opcoes-container">
-        <img id="imgAnonimo" src="https://raw.githubusercontent.com/Leandroxx10/painel-producao/refs/heads/main/depositphotos_39258193-stock-illustration-anonymous-business-man-icon.jpg" alt="Visualizador" onclick="entrarComoVisualizador()" class="imagem-opcao" />
-        <img id="imgAdmin" src="https://raw.githubusercontent.com/Leandroxx10/painel-producao/refs/heads/main/utilizador-de-negocios-em-cog_78370-7040.jpg" alt="Fazer Login" onclick="mostrarLoginAnimado()" class="imagem-opcao" />
-      </div>
-      <div id="formLogin">
-        <input id="emailLogin" type="email" placeholder="Email" />
-        <input id="senhaLogin" type="password" placeholder="Senha" />
-        <button onclick="fazerLoginFirebase()">🚪 Entrar</button>
-      </div>
-      <button class="fechar-perfil" onclick="fecharModalEscolha()">❌ Fechar</button>
-    </div>
-  </div>
-
-  <!-- Modal de Chat -->
-  <div id="modalChat">
-    <div class="chat-container">
-      <button class="fechar-chat" onclick="fecharChat()">❌</button>
-      <h2>Chat ao Vivo</h2>
-      <div id="infoUsuario">
-        Logado como: <span id="emailUsuario"></span>
-        <button onclick="fazerLogout()" style="margin-left:10px; padding:6px 10px; background:#dc2626; color:white; border:none; border-radius:6px;">Sair</button>
-      </div>
-      <button onclick="limparMensagensAntigas()" style="margin-top:10px; background:#b91c1c; color:white; border:none; padding:8px 12px; border-radius:6px;">
-        🗑️ Apagar mensagens com +7 dias
-      </button>
-      <input id="buscaMensagem" placeholder="🔎 Buscar mensagem..." oninput="filtrarMensagensChat()" />
-      <div id="containerMensagens">
-        <table>
-          <thead>
-            <tr>
-              <th>Data</th>
-              <th>Horário</th>
-              <th>Remetente</th>
-              <th>Mensagem</th>
-            </tr>
-          </thead>
-          <tbody id="tabelaMensagens"></tbody>
-        </table>
-      </div>
-      <div class="chat-input-container">
-        <input id="mensagemChat" placeholder="Digite uma mensagem..." />
-        <button class="btn-enviar" onclick="enviarMensagem()">Enviar</button>
-      </div>
-    </div>
-  </div>
-
   <!-- Modal de Histórico -->
   <div id="modalHistorico">
     <div class="grafico-container">
@@ -975,11 +796,11 @@
         </div>
         <div class="grupo">
           <label for="horaInicio">⏰ Hora início:</label>
-          <input type="time" id="horaInicio" value="01:00" class="campo-input" />
+          <input type="time" id="horaInicio" value="00:01" class="campo-input" />
         </div>
         <div class="grupo">
           <label for="horaFim">⏳ Hora fim:</label>
-          <input type="time" id="horaFim" value="23:00" class="campo-input" />
+          <input type="time" id="horaFim" value="23:59" class="campo-input" />
         </div>
         <div class="grupo">
           <button onclick="filtrarHistoricoHora()" class="botao-Azul">🔍 Filtrar</button>
@@ -1012,10 +833,13 @@
 
   <!-- Botões flutuantes -->
   <button id="btnVoz" class="botao-flutuante">🎤 Falar com Painel</button>
-  <button id="btnChat" class="botao-flutuante">💬 Chat ao Vivo</button>
 
   <script>
-    // ===== CONFIGURAÇÕES DO FIREBASE =====
+    /* 
+     * ================================================================
+     * Configurações do Firebase
+     * ================================================================
+     */
     const firebaseConfigPrincipal = {
       apiKey: "AIzaSyBPgWEv0f8fK25teN6K2S3VGO63s_YRcOA",
       authDomain: "controleproducao2025-42272.firebaseapp.com",
@@ -1044,7 +868,11 @@
     const appHistorico = firebase.initializeApp(firebaseConfigHistorico, "historico");
     const dbHistorico = appHistorico.database();
 
-    // ===== VARIÁVEIS GLOBAIS =====
+    /* 
+     * ================================================================
+     * Variáveis Globais
+     * ================================================================
+     */
     let dadosPrefixos = [];
     let dadosMaquinas = {};
     let mostrarCriticos = false;
@@ -1053,16 +881,40 @@
     let historicoBruto = {};
     let reconhecimentoAtivo = false;
     let reconhecimento = null;
-    let totalMensagensVistas = 0;
     Chart.register(ChartDataLabels);
 
-    // ===== FUNÇÕES DE INICIALIZAÇÃO =====
+    /* 
+     * ================================================================
+     * Funções de Inicialização
+     * ================================================================
+     */
     document.addEventListener("DOMContentLoaded", () => {
+      // Verificar se o usuário já está autenticado
+      if (localStorage.getItem("autenticado") === "1") {
+        esconderSplashEMostrarConteudo();
+      }
+
       // Configurar modo escuro
       const modoSalvo = localStorage.getItem("modo_escuro");
       if (modoSalvo === "1") {
         document.body.classList.add("dark");
         document.querySelector(".darkmode-toggle").textContent = " Modo Claro";
+      }
+
+      // Configurar zoom inicial
+      const zoomSalvo = localStorage.getItem("zoomCards");
+      if (zoomSalvo) {
+        atualizarZoom(zoomSalvo);
+      } else {
+        atualizarZoom(100);
+      }
+
+      // Configurar espaçamento inicial
+      const gapSalvo = localStorage.getItem("gapCards");
+      if (gapSalvo) {
+        atualizarGap(gapSalvo);
+      } else {
+        atualizarGap(10);
       }
 
       // Carregar dados de prefixos
@@ -1075,27 +927,47 @@
           console.error("Erro ao carregar dados dos prefixos:", err);
         });
 
-      // Configurar botões flutuantes
+      // Configurar botão de voz
       document.getElementById("btnVoz").addEventListener("click", ouvirComando);
-      document.getElementById("btnChat").addEventListener("click", abrirChat);
     });
 
-    // ===== FUNÇÕES DE AUTENTICAÇÃO =====
+    /* 
+     * ================================================================
+     * Funções de Autenticação
+     * ================================================================
+     */
     function verificarSenhaSplash() {
       const senha = document.getElementById("senhaSplash").value;
       const senhaCorreta = "wmoldes";
 
       if (senha === senhaCorreta) {
-        document.getElementById("senha-container").style.display = "none";
-        const conteudo = document.getElementById("conteudo");
-        conteudo.style.opacity = "1";
-        conteudo.style.pointerEvents = "auto";
-        iniciarPainelAposSenha();
+        // Salvar autenticação no localStorage
+        localStorage.setItem("autenticado", "1");
+        esconderSplashEMostrarConteudo();
       } else {
         alert("❌ Senha incorreta!");
       }
     }
 
+    function esconderSplashEMostrarConteudo() {
+      document.getElementById("senha-container").style.display = "none";
+      const conteudo = document.getElementById("conteudo");
+      conteudo.style.opacity = "1";
+      conteudo.style.pointerEvents = "auto";
+      iniciarPainelAposSenha();
+    }
+
+    function logout() {
+      // Remover autenticação e recarregar a página
+      localStorage.removeItem("autenticado");
+      location.reload();
+    }
+
+    /* 
+     * ================================================================
+     * Funções do Painel
+     * ================================================================
+     */
     function iniciarPainelAposSenha() {
       let ultimaHoraRegistrada = "";
 
@@ -1124,7 +996,9 @@
             molde: dadosMaquina.molde || 0,
             molde_reserva: dadosMaquina.molde_reserva || 0,
             blank: dadosMaquina.blank || 0,
-            blank_reserva: dadosMaquina.blank_reserva || 0
+            blank_reserva: dadosMaquina.blank_reserva || 0,
+            neck_ring: dadosMaquina.neck_ring || 0,          // Corrigido para neck_ring
+            neck_ring_reserva: dadosMaquina.neck_ring_reserva || 0  // Corrigido para neck_ring_reserva
           };
 
           dbHistorico.ref(`${idMaquina}/${timestamp}`).set(entradaHistorico);
@@ -1132,20 +1006,23 @@
       });
     }
 
-    // ===== FUNÇÕES DO PAINEL =====
     function criarPainel(dados) {
       const painel = document.getElementById("painel");
       painel.innerHTML = "";
       const filtro = document.getElementById("filtro").value.toLowerCase();
-      let totalMolde = 0, totalBlank = 0;
+      let totalMolde = 0, totalBlank = 0, totalNeckring = 0;
 
       let maquinas = Object.entries(dados).map(([id, m]) => {
         const molde = Math.max(m.molde || 0, 0);
         const moldeR = Math.max(m.molde_reserva || 0, 0);
         const blank = Math.max(m.blank || 0, 0);
         const blankR = Math.max(m.blank_reserva || 0, 0);
+        const neckring = Math.max(m.neck_ring || 0, 0);          // Corrigido para neck_ring
+        const neckringR = Math.max(m.neck_ring_reserva || 0, 0); // Corrigido para neck_ring_reserva
+        
         const totalM = molde + moldeR;
         const totalB = blank + blankR;
+        const totalN = neckring + neckringR;
 
         return {
           id,
@@ -1153,8 +1030,12 @@
           moldeR,
           blank,
           blankR,
+          neckring,
+          neckringR,
           totalM,
           totalB,
+          totalN,
+          // Critico apenas para moldes e blanks (não para neckrings)
           isCritico: totalM <= 5 || totalB <= 5,
           parada: m.parada || false,
           prefixo: m.prefixo || ""
@@ -1175,6 +1056,8 @@
       for (const m of maquinas) {
         totalMolde += m.totalM;
         totalBlank += m.totalB;
+        totalNeckring += m.totalN;
+        
         const div = document.createElement("div");
         div.className = "maquina";
         if (m.isCritico && mostrarCriticos) div.classList.add("critica");
@@ -1196,12 +1079,13 @@
           </div>
           <p>Molde: ${m.molde} | Reserva: ${m.moldeR}</p>
           <p>Blank: ${m.blank} | Reserva: ${m.blankR}</p>
+          <p>Neckring: ${m.neckring} | Reserva: ${m.neckringR}</p>
           <p class="totalizacao">Total Moldes: ${m.totalM} | Total Blanks: ${m.totalB}</p>
+          <p class="totalizacao">Total Neckrings: ${m.totalN}</p>
           <canvas id="grafico-${m.id}"></canvas>
           <button type="button" class="botao-info" onclick="abrirModalInformacoesMaquina('${m.id}')">
             ℹ️ Informações
           </button>
-          <!-- Botão para abrir histórico -->
           <button type="button" class="botao-info" style="margin-top: 10px; background: #3b82f6;" onclick="abrirModalHistorico('${m.id}')">
             📊 Histórico
           </button>
@@ -1216,12 +1100,12 @@
         charts[m.id] = new Chart(ctx, {
           type: "bar",
           data: {
-            labels: ["Molde", "Blank"],
+            labels: ["Molde", "Blank", "Neckring"],
             datasets: [
               {
                 label: "Total",
-                data: [m.totalM, m.totalB],
-                backgroundColor: [getCor(m.totalM), getCor(m.totalB)]
+                data: [m.totalM, m.totalB, m.totalN],
+                backgroundColor: [getCor(m.totalM), getCor(m.totalB), "#6d28d9"]
               }
             ]
           },
@@ -1258,7 +1142,7 @@
 
       // Atualizar totais
       document.getElementById("totais").innerText =
-        `Total geral de Moldes: ${totalMolde} | Total geral de Blanks: ${totalBlank}`;
+        `Total geral: Moldes: ${totalMolde} | Blanks: ${totalBlank} | Neckrings: ${totalNeckring}`;
     }
 
     // Funções auxiliares do painel
@@ -1302,7 +1186,57 @@
       db.ref("maquinas/" + idMaquina + "/parada").set(parado ? true : null);
     }
 
-    // ===== FUNÇÕES DE VOZ =====
+    /* 
+     * ================================================================
+     * Funções de Controle de Zoom e Espaçamento
+     * ================================================================
+     */
+    function atualizarZoom(valor) {
+      // Atualizar valor exibido
+      document.getElementById("zoomValue").textContent = `${valor}%`;
+      
+      // Aplicar transformação de escala a todos os cards
+      const cards = document.querySelectorAll(".maquina");
+      const escala = valor / 100;
+      
+      cards.forEach(card => {
+        card.style.transform = `scale(${escala})`;
+      });
+      
+      // Salvar preferência no localStorage
+      localStorage.setItem("zoomCards", valor);
+    }
+
+    function atualizarGap(valor) {
+      // Atualizar valor exibido
+      document.getElementById("gapValue").textContent = `${valor}px`;
+      
+      // Atualizar o gap entre os cards
+      const painel = document.getElementById("painel");
+      painel.style.gap = `${valor}px`;
+      
+      // Atualizar a variável CSS para uso futuro
+      document.documentElement.style.setProperty('--gap-base', `${valor}px`);
+      
+      // Salvar preferência no localStorage
+      localStorage.setItem("gapCards", valor);
+    }
+
+    function resetarZoom() {
+      atualizarZoom(100);
+      document.getElementById("zoomSlider").value = 100;
+    }
+
+    function resetarGap() {
+      atualizarGap(10);
+      document.getElementById("gapSlider").value = 10;
+    }
+
+    /* 
+     * ================================================================
+     * Funções de Voz
+     * ================================================================
+     */
     function ouvirComando() {
       if (!("webkitSpeechRecognition" in window)) {
         alert("❌ Seu navegador não suporta voz. Use o Chrome no Android.");
@@ -1362,7 +1296,8 @@
           resposta: () => {
             const molde = Object.values(dadosMaquinas).reduce((soma, m) => soma + (m.molde || 0) + (m.molde_reserva || 0), 0);
             const blank = Object.values(dadosMaquinas).reduce((soma, m) => soma + (m.blank || 0) + (m.blank_reserva || 0), 0);
-            falarComGrave(`Temos um total de ${molde} moldes e ${blank} blanks.`);
+            const neckring = Object.values(dadosMaquinas).reduce((soma, m) => soma + (m.neck_ring || 0) + (m.neck_ring_reserva || 0), 0);
+            falarComGrave(`Temos um total de ${molde} moldes, ${blank} blanks e ${neckring} neckrings.`);
           }
         },
         {
@@ -1410,12 +1345,6 @@
       if (comando.includes("tela cheia")) {
         alternarFullscreen();
         falarComGrave("Tela cheia ativada.");
-        return;
-      }
-
-      if (comando.includes("abrir chat") || comando.includes("falar com operador")) {
-        abrirChat();
-        falarComGrave("Abrindo chat ao vivo.");
         return;
       }
 
@@ -1472,10 +1401,13 @@
       const moldeR = m.molde_reserva || 0;
       const blank = m.blank || 0;
       const blankR = m.blank_reserva || 0;
+      const neckring = m.neck_ring || 0;          // Corrigido para neck_ring
+      const neckringR = m.neck_ring_reserva || 0; // Corrigido para neck_ring_reserva
       const totalM = molde + moldeR;
       const totalB = blank + blankR;
+      const totalN = neckring + neckringR;
 
-      let resposta = `Máquina ${idEncontrado}. Moldes: ${molde} mais ${moldeR} de reserva. Blanks: ${blank} mais ${blankR} de reserva.`;
+      let resposta = `Máquina ${idEncontrado}. Moldes: ${molde} mais ${moldeR} de reserva. Blanks: ${blank} mais ${blankR} de reserva. Neckrings: ${neckring} mais ${neckringR} de reserva.`;
       if (m.parada) resposta += " Atenção: esta máquina está parada para manutenção.";
 
       falarComGrave(resposta);
@@ -1499,6 +1431,7 @@
         .filter(([id, m]) => {
           const totalM = (m.molde || 0) + (m.molde_reserva || 0);
           const totalB = (m.blank || 0) + (m.blank_reserva || 0);
+          // Neckrings não são considerados na verificação de críticos
           return totalM <= 5 || totalB <= 5;
         });
 
@@ -1523,7 +1456,11 @@
       falarComGrave(mensagem);
     }
 
-    // ===== FUNÇÕES DE HISTÓRICO =====
+    /* 
+     * ================================================================
+     * Funções de Histórico
+     * ================================================================
+     */
     function abrirModalHistorico(idMaquina) {
       const modal = document.getElementById("modalHistorico");
       modal.style.display = "flex";
@@ -1589,31 +1526,60 @@
         const hora = horaCompleta.slice(0, 2);
 
         if (data !== diaSelecionado) return;
-        if (horaCompleta >= horaInicio && horaCompleta <= horaFim) {
+        
+        // Converter horas para comparar (formato HH:MM)
+        const horaAtual = horaCompleta;
+        
+        // Verificar se está dentro do intervalo selecionado
+        if (horaAtual >= horaInicio && horaAtual <= horaFim) {
           if (!dadosAgrupados[hora]) {
-            dadosAgrupados[hora] = { molde: 0, molde_reserva: 0, blank: 0, blank_reserva: 0 };
+            dadosAgrupados[hora] = { 
+              molde: 0, 
+              molde_reserva: 0, 
+              blank: 0, 
+              blank_reserva: 0,
+              neck_ring: 0,
+              neck_ring_reserva: 0
+            };
           }
 
           dadosAgrupados[hora].molde += Number(valores.molde || 0);
           dadosAgrupados[hora].molde_reserva += Number(valores.molde_reserva || 0);
           dadosAgrupados[hora].blank += Number(valores.blank || 0);
           dadosAgrupados[hora].blank_reserva += Number(valores.blank_reserva || 0);
+          dadosAgrupados[hora].neck_ring += Number(valores.neck_ring || 0);          // Corrigido para neck_ring
+          dadosAgrupados[hora].neck_ring_reserva += Number(valores.neck_ring_reserva || 0); // Corrigido para neck_ring_reserva
         }
       });
 
-      const labels = Object.keys(dadosAgrupados).map(h => `${h}:00`);
+      // Ordenar horas numericamente (00, 01, 02... 23)
+      const horasOrdenadas = Object.keys(dadosAgrupados)
+        .map(h => parseInt(h))
+        .sort((a, b) => a - b)
+        .map(h => h.toString().padStart(2, '0'));
+
+      const labels = horasOrdenadas.map(h => `${h}:00`);
       const tipoSelecionado = document.getElementById("filtroTipoDado").value;
 
-      const moldes = Object.values(dadosAgrupados).map(v => {
+      const moldes = horasOrdenadas.map(h => {
+        const v = dadosAgrupados[h];
         if (tipoSelecionado === "maquina") return v.molde;
         if (tipoSelecionado === "reserva") return v.molde_reserva;
         return v.molde + v.molde_reserva;
       });
 
-      const blanks = Object.values(dadosAgrupados).map(v => {
+      const blanks = horasOrdenadas.map(h => {
+        const v = dadosAgrupados[h];
         if (tipoSelecionado === "maquina") return v.blank;
         if (tipoSelecionado === "reserva") return v.blank_reserva;
         return v.blank + v.blank_reserva;
+      });
+
+      const neckrings = horasOrdenadas.map(h => {
+        const v = dadosAgrupados[h];
+        if (tipoSelecionado === "maquina") return v.neck_ring;          // Corrigido para neck_ring
+        if (tipoSelecionado === "reserva") return v.neck_ring_reserva;  // Corrigido para neck_ring_reserva
+        return v.neck_ring + v.neck_ring_reserva;                       // Corrigido para neck_ring
       });
 
       const tipoGraficoSelecionado = document.getElementById("tipoGrafico").value;
@@ -1637,6 +1603,14 @@
               data: blanks,
               borderColor: "#0f111d",
               backgroundColor: "#272727",
+              tension: 0.3,
+              fill: false
+            },
+            {
+              label: "Total Neckrings",
+              data: neckrings,
+              borderColor: "#7e22ce",
+              backgroundColor: "#a855f7",
               tension: 0.3,
               fill: false
             }
@@ -1681,198 +1655,11 @@
       pdf.save("historico-producao.pdf");
     }
 
-    // ===== FUNÇÕES DO CHAT =====
-    function abrirChat() {
-      const modalChat = document.getElementById("modalChat");
-      modalChat.style.display = "flex";
-      carregarMensagens();
-
-      // Verificar se já está autenticado com sessão persistente
-      firebase.auth().onAuthStateChanged(user => {
-        if (user) {
-          // Usuário já logado
-          document.getElementById("emailUsuario").textContent = user.email.split("@")[0].replace(/\./g, " ");
-        } else {
-          // Mostrar opções de login
-          document.getElementById("modalEscolhaPerfil").style.display = "flex";
-        }
-      });
-    }
-
-    function fecharChat() {
-      document.getElementById("modalChat").style.display = "none";
-    }
-
-    function carregarMensagens() {
-      const corpo = document.getElementById("tabelaMensagens");
-      corpo.innerHTML = "<tr><td colspan='4' style='text-align:center;'>⏳ Carregando mensagens...</td></tr>";
-
-      db.ref("chat").limitToLast(50).on("value", snapshot => {
-        const mensagens = snapshot.val();
-        corpo.innerHTML = "";
-        
-        if (!mensagens) {
-          corpo.innerHTML = "<tr><td colspan='4' style='text-align:center;'>📭 Nenhuma mensagem ainda.</td></tr>";
-          atualizarNotificacoes({});
-          return;
-        }
-
-        // Atualizar notificações
-        const novas = Object.keys(mensagens).length - totalMensagensVistas;
-        if (novas > 0 && document.getElementById("modalChat").style.display !== "flex") {
-          document.getElementById("contadorMensagens").textContent = novas;
-          document.getElementById("contadorMensagens").style.display = "inline-block";
-        } else {
-          document.getElementById("contadorMensagens").style.display = "none";
-        }
-        totalMensagensVistas = Object.keys(mensagens).length;
-
-        // Adicionar mensagens à tabela
-        Object.entries(mensagens).forEach(([id, m]) => {
-          const dataHora = new Date(m.timestamp || 0);
-          const dia = String(dataHora.getDate()).padStart(2, '0');
-          const mes = String(dataHora.getMonth() + 1).padStart(2, '0');
-          const data = `${dia}/${mes}`;
-          const hora = dataHora.toLocaleTimeString("pt-BR", { hour: '2-digit', minute: '2-digit' });
-          
-          const linha = `
-            <tr>
-              <td>${data}</td>
-              <td>${hora}</td>
-              <td>${(m.remetente || "Usuário").split("@")[0]}</td>
-              <td>${m.mensagem}</td>
-            </tr>
-          `;
-          corpo.innerHTML += linha;
-        });
-
-        // Rolar para o final
-        const container = document.getElementById("containerMensagens");
-        container.scrollTop = container.scrollHeight;
-      });
-    }
-
-    function enviarMensagem() {
-      const input = document.getElementById("mensagemChat");
-      const texto = input.value.trim();
-      const user = firebase.auth().currentUser;
-
-      if (!user) {
-        alert("⚠️ Faça login para enviar mensagens.");
-        return;
-      }
-
-      if (!texto) return;
-
-      const novaMensagem = {
-        mensagem: texto,
-        remetente: user.email || "Anônimo",
-        timestamp: Date.now()
-      };
-
-      db.ref("chat").push(novaMensagem);
-      input.value = "";
-    }
-
-    function filtrarMensagensChat() {
-      const termo = document.getElementById("buscaMensagem").value.toLowerCase();
-      const linhas = document.querySelectorAll("#tabelaMensagens tr");
-
-      linhas.forEach(linha => {
-        const texto = linha.innerText.toLowerCase();
-        linha.style.display = texto.includes(termo) ? "" : "none";
-      });
-    }
-
-    function limparMensagensAntigas() {
-      if (!confirm("⚠️ Tem certeza que deseja apagar mensagens com mais de 7 dias?")) return;
-
-      const agora = Date.now();
-      const seteDias = 7 * 24 * 60 * 60 * 1000;
-
-      db.ref("chat").once("value").then(snapshot => {
-        const mensagens = snapshot.val();
-        if (!mensagens) {
-          alert("📭 Nenhuma mensagem para excluir.");
-          return;
-        }
-
-        let contador = 0;
-        Object.entries(mensagens).forEach(([id, m]) => {
-          if ((agora - m.timestamp) > seteDias) {
-            db.ref("chat/" + id).remove();
-            contador++;
-          }
-        });
-
-        alert(`✅ ${contador} mensagens antigas removidas.`);
-        carregarMensagens();
-      });
-    }
-
-    function entrarComoVisualizador() {
-      document.getElementById("modalEscolhaPerfil").style.display = "none";
-      document.getElementById("modalChat").style.display = "flex";
-      document.getElementById("emailUsuario").textContent = "Visualizador";
-      carregarMensagens();
-    }
-
-    function mostrarLoginAnimado() {
-      document.getElementById("imgAnonimo").style.opacity = "0";
-      document.getElementById("imgAnonimo").style.pointerEvents = "none";
-      setTimeout(() => {
-        document.getElementById("imgAnonimo").style.display = "none";
-        document.getElementById("imgAdmin").style.width = "90%";
-        document.getElementById("formLogin").style.display = "block";
-      }, 300);
-    }
-
-    function fazerLoginFirebase() {
-      const email = document.getElementById("emailLogin").value;
-      const senha = document.getElementById("senhaLogin").value;
-
-      if (!email || !senha) {
-        alert("⚠️ Preencha o email e a senha!");
-        return;
-      }
-
-      // Configurar persistência de sessão
-      firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
-        .then(() => {
-          return firebase.auth().signInWithEmailAndPassword(email, senha);
-        })
-        .then(() => {
-          document.getElementById("modalEscolhaPerfil").style.display = "none";
-          document.getElementById("emailUsuario").textContent = email.split("@")[0].replace(/\./g, " ");
-          carregarMensagens();
-        })
-        .catch(error => {
-          alert("❌ Erro ao fazer login:\n" + error.message);
-        });
-    }
-
-    function fazerLogout() {
-      firebase.auth().signOut().then(() => {
-        document.getElementById("modalChat").style.display = "none";
-        document.getElementById("modalEscolhaPerfil").style.display = "flex";
-        resetarEscolhaPerfil();
-      });
-    }
-
-    function resetarEscolhaPerfil() {
-      document.getElementById("imgAnonimo").style.display = "block";
-      document.getElementById("imgAnonimo").style.opacity = "1";
-      document.getElementById("imgAnonimo").style.pointerEvents = "auto";
-      document.getElementById("imgAdmin").style.width = "48%";
-      document.getElementById("formLogin").style.display = "none";
-    }
-
-    function fecharModalEscolha() {
-      document.getElementById("modalEscolhaPerfil").style.display = "none";
-      resetarEscolhaPerfil();
-    }
-
-    // ===== FUNÇÕES DE INFORMAÇÕES =====
+    /* 
+     * ================================================================
+     * Funções de Informações
+     * ================================================================
+     */
     function abrirModalInformacoesMaquina(idMaquina) {
       const dados = dadosMaquinas[idMaquina];
       if (!dados) return;
@@ -1914,16 +1701,14 @@
         });
     }
 
-    // ===== EVENT LISTENERS ADICIONAIS =====
+    /* 
+     * ================================================================
+     * Event Listeners
+     * ================================================================
+     */
     document.getElementById("senhaSplash").addEventListener("keydown", function (event) {
       if (event.key === "Enter") {
         verificarSenhaSplash();
-      }
-    });
-
-    document.getElementById("mensagemChat").addEventListener("keydown", function (event) {
-      if (event.key === "Enter") {
-        enviarMensagem();
       }
     });
 
@@ -1936,7 +1721,6 @@
       const olhoAberto = document.getElementById("olhoAberto");
       const olhoFechado = document.getElementById("olhoFechado");
       const pupila = document.getElementById("pupila");
-      const iconeOlho = document.getElementById("iconeOlho");
       
       if (input.type === "password") {
         input.type = "text";
