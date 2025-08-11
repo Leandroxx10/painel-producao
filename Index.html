@@ -760,7 +760,7 @@
     <!-- Controles de zoom e espaçamento -->
     <div class="zoom-control">
       <label for="zoomSlider">🔍 Zoom dos Cards:</label>
-      <input type="range" id="zoomSlider" min="70" max="120" value="100" step="-50" oninput="atualizarZoom(this.value)" />
+      <input type="range" id="zoomSlider" min="70" max="120" value="100" step="1" oninput="atualizarZoom(this.value)" />
       <span class="zoom-value" id="zoomValue">100%</span>
       <button onclick="resetarZoom()">🔄 Padrão</button>
     </div>
