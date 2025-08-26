@@ -95,22 +95,22 @@
     }
 
     .botoes-container button {
-      min-width: 130px;
-      height: 36px;
-      padding: 0 12px;
-      border-radius: 6px;
-      border: none;
-      font-size: 0.75rem;
-      font-weight: 500;
-      background-color: var(--cor-primaria);
-      color: white;
-      white-space: nowrap;
-      text-align: center;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 5px;
-    }
+  min-width: 90px; /* Reduzido de 130px */
+  height: 28px; /* Reduzido de 36px */
+  padding: 0 8px; /* Reduzido de 0 12px */
+  border-radius: 4px; /* Reduzido de 6px */
+  border: none;
+  font-size: 0.6rem; /* Reduzido de 0.75rem */
+  font-weight: 500;
+  background-color: var(--cor-primaria);
+  color: white;
+  white-space: nowrap;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px; /* Reduzido de 5px */
+}
 
     .botoes-container button:hover {
       background-color: #1f8bb8;
@@ -130,6 +130,8 @@
       background-color: #1e293b;
       border: 1px solid #475569;
     }
+    
+    
 
     /* ===== TELA DE SENHA ===== */
     #senha-container {
@@ -265,31 +267,36 @@
 
     /* ===== CARDS DE MÁQUINAS ===== */
     #painel {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      gap: var(--gap-base);
-      margin-top: 15px;
-      transition: gap 0.3s ease;
-    }
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-content: flex-start;
+  gap: 8px;
+  margin-top: 5px;
+  height: 620px;
+  overflow: hidden;
+  padding: 5px;
+  box-sizing: border-box;
+}
 
     .maquina {
-      position: relative;
-      overflow: visible;
-      background: var(--cor-card);
-      padding: 1.25rem;
-      border-radius: 0.75rem;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
-      border-left: 2px solid #397ee5;
-      border-right: 2px solid #397ee5;
-      border-bottom: 1px solid #e8e8e8;
-      border-top: 1px solid #e8e8e8;
-      transition: transform 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-      transform-origin: center center;
-      min-height: 320px;
-    }
+  position: relative;
+  overflow: hidden;
+  background: var(--cor-card);
+  padding: 8px;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  border-left: 2px solid #397ee5;
+  border-right: 2px solid #397ee5;
+  border-bottom: 1px solid #e8e8e8;
+  border-top: 1px solid #e8e8e8;
+  width: 230px; /* LARGURA FIXA para os cards */
+  height: 180px; /* ALTURA FIXA para os cards */
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0; /* Impede que os cards encolham */
+  transition: all 0.3s ease;
+}
 
     .maquina:hover {
       transform: scale(1.015);
@@ -309,67 +316,73 @@
     }
 
     .maquina canvas {
-      width: 100% !important;
-      height: 100px !important;
-      background-color: white;
-      border-radius: 8px;
-      padding: 10px;
-      box-sizing: border-box;
-    }
+  width: 100% !important;
+  height: 60px !important; /* Reduzido de 100px */
+  background-color: white;
+  border-radius: 4px; /* Reduzido de 8px */
+  padding: 3px; /* Reduzido de 10px */
+  box-sizing: border-box;
+}
 
     .maquina h3 {
-      margin-bottom: 10px;
-      font-size: 1.2rem;
-    }
+  margin-bottom: 5px; /* Reduzido de 10px */
+  font-size: 0.9rem; /* Reduzido de 1.2rem */
+}
 
-    .maquina p {
-      margin: 5px 0;
-      font-size: 0.9rem;
-    }
+.maquina p {
+  margin: 2px 0; /* Reduzido de 5px */
+  font-size: 0.7rem; /* Reduzido de 0.9rem */
+}
 
-    .totalizacao {
-      font-weight: bold;
-      margin-top: 10px;
-      color: var(--cor-primaria);
-      font-size: 0.95rem;
-    }
+.totalizacao {
+  font-weight: bold;
+  margin-top: 5px; /* Reduzido de 10px */
+  color: var(--cor-primaria);
+  font-size: 0.45rem; /* Reduzido de 0.55rem */
+}
 
+.prefixo {
+  font-weight: bold;
+  color: #2563eb;
+  margin-left: 3px; /* Reduzido de 6px */
+  font-size: 0.8rem; /* Reduzido de 1.05rem */
+}
     /* ===== ELEMENTOS DE CONTROLE ===== */
     .aviso-parada {
-      position: absolute;
-      top: 12px;
-      left: 20px;
-      background: linear-gradient(to right, #dc2626, #e11d48) !important;
-      color: #fff;
-      padding: 6px 12px;
-      border-radius: 8px;
-      font-weight: 500;
-      font-size: 0.35rem;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-      z-index: 10;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      animation: blink 1.2s infinite;
-    }
+  position: absolute;
+  top: 5px; /* Reduzido de 12px */
+  left: 8px; /* Reduzido de 20px */
+  background: linear-gradient(to right, #dc2626, #e11d48) !important;
+  color: #fff;
+  padding: 2px 4px; /* Reduzido de 6px 12px */
+  border-radius: 3px; /* Reduzido de 8px */
+  font-weight: 500;
+  font-size: 0.25rem; /* Reduzido de 0.35rem */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2); /* Sombra reduzida */
+  z-index: 10;
+  text-transform: uppercase;
+  letter-spacing: 0.3px; /* Reduzido de 0.5px */
+  animation: blink 1.2s infinite;
+  line-height: 1;
+}
 
-    .checkbox-parada {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      z-index: 10;
-      width: 24px;
-      height: 24px;
-      appearance: none;
-      background-color: #ffffff;
-      border-radius: 4px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.2s ease;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-    }
-
+.checkbox-parada {
+  position: absolute;
+  top: 5px; /* Reduzido de 10px */
+  right: 5px; /* Reduzido de 10px */
+  z-index: 10;
+  width: 16px; /* Reduzido de 24px */
+  height: 16px; /* Reduzido de 24px */
+  appearance: none;
+  background-color: #ffffff;
+  border-radius: 2px; /* Reduzido de 4px */
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2); /* Sombra reduzida */
+}
     .checkbox-parada:checked::after {
       content: "✔";
       color: #ff4040e0 !important;
@@ -378,14 +391,14 @@
     }
 
     .select-wrapper {
-      margin: 10px 0;
-    }
+  margin: 5px 0; /* Reduzido de 10px 0 */
+}
 
-    .select-wrapper label {
-      font-size: 0.8rem;
-      display: block;
-      margin-bottom: 4px;
-    }
+.select-wrapper label {
+  font-size: 0.65rem; /* Reduzido de 0.8rem */
+  display: block;
+  margin-bottom: 2px; /* Reduzido de 4px */
+}
 
     /* ATUALIZAÇÃO: Prefixo em negrito azul e maior */
     .prefixo {
@@ -396,19 +409,20 @@
     }
 
     .botao-info {
-      background-color: #0f0f0f;
-      color: white;
-      padding: 8px 16px;
-      font-size: 0.85rem;
-      font-weight: 500;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: background-color 0.2s ease, transform 0.2s ease;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-      width: 100%;
-      margin-top: auto;
-    }
+  background-color: #0f0f0f;
+  color: white;
+  padding: 4px 8px; /* Reduzido de 8px 16px */
+  font-size: 0.6rem; /* Reduzido de 0.85rem */
+  font-weight: 500;
+  border: none;
+  border-radius: 4px; /* Reduzido de 8px */
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3); /* Sombra reduzida */
+  width: 100%;
+  margin-top: auto;
+  line-height: 1.2;
+}
 
     .botao-info:hover {
       background-color: #1a1a1a;
@@ -437,7 +451,7 @@
       background: #ffffff;
       border-radius: 12px;
       padding: 20px 24px;
-      max-width: 500px;
+      max-width: 400px;
       width: 100%;
       max-height: 90vh;
       overflow-y: auto;
@@ -657,29 +671,30 @@
     }
 
     /* ATUALIZAÇÃO: Estilos para controle de zoom */
-    .zoom-control {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-top: 10px;
-      flex-wrap: wrap;
-    }
+    .zoom-control, .gap-control {
+  display: flex;
+  align-items: center;
+  gap: 5px; /* Reduzido de 10px */
+  margin-top: 5px; /* Reduzido de 10px */
+  flex-wrap: wrap;
+  font-size: 0.7rem; /* Adicionado */
+}
 
-    .zoom-control label {
-      font-size: 0.9rem;
-      color: var(--cor-texto);
-    }
+.zoom-control label, .gap-control label {
+  font-size: 0.7rem; /* Reduzido de 0.9rem */
+  color: var(--cor-texto);
+}
 
-    .zoom-control input {
-      width: 120px;
-    }
+.zoom-control input, .gap-control input {
+  width: 80px; /* Reduzido de 120px */
+}
 
-    .zoom-value {
-      min-width: 40px;
-      text-align: center;
-      font-weight: bold;
-    }
-
+.zoom-value, .gap-value {
+  min-width: 25px; /* Reduzido de 40px */
+  text-align: center;
+  font-weight: bold;
+  font-size: 0.7rem; /* Adicionado */
+}
     .zoom-control button {
       padding: 8px 12px;
       background: #3b82f6;
@@ -712,6 +727,52 @@
       text-align: center;
       font-weight: bold;
     }
+    
+    /* ===== MODO GRÁFICO ===== */
+.modo-grafico .maquina {
+  min-height: 280px;
+  padding: 25px 10px; /* Reduz o padding lateral para dar mais espaço */
+}
+
+.modo-grafico .maquina h3 {
+  font-size: 1.1rem;
+  margin-bottom: 8px;
+}
+
+.modo-grafico .maquina p,
+.modo-grafico .maquina .select-wrapper,
+.modo-grafico .maquina .totalizacao {
+  display: none;
+}
+
+.modo-grafico .maquina canvas {
+  height: 160px !important;
+  width: 100% !important; /* Força ocupar toda a largura */
+  margin: 0 -10px; /* Compensa o padding do card */
+  flex-grow: 1;
+}
+
+.modo-grafico .maquina .botao-info {
+  margin-top: 8px;
+  font-size: 0.8rem;
+  padding: 6px 12px;
+}
+    
+    /* Remover margens excedentes */
+h1 {
+  margin-bottom: 10px !important; /* Reduz margem do título */
+  font-size: 1.5rem !important; /* Reduz tamanho da fonte do título */
+}
+
+.top-bar {
+  margin-bottom: 10px !important; /* Reduz margem inferior */
+}
+
+#totais {
+  font-size: 0.8rem; /* Reduz tamanho da fonte dos totais */
+  margin-bottom: 5px; /* Adiciona margem inferior pequena */
+}
+    
   </style>
 </head>
 <body>
@@ -754,23 +815,27 @@
         <button onclick="lerAlertasCriticos()">🔊 Ouvir Críticos</button>
         <!-- Botão de logout -->
         <button onclick="logout()">🚪 Sair</button>
+        <button onclick="alternarVisualizacao()">📊 Modo Gráfico</button>
+        
       </div>
     </div>
     
     <!-- Controles de zoom e espaçamento -->
-    <div class="zoom-control">
-      <label for="zoomSlider">🔍 Zoom dos Cards:</label>
-      <input type="range" id="zoomSlider" min="70" max="120" value="100" step="5" oninput="atualizarZoom(this.value)" />
-      <span class="zoom-value" id="zoomValue">100%</span>
-      <button onclick="resetarZoom()">🔄 Padrão</button>
-    </div>
+ 
+<div class="zoom-control">
+  <label for="zoomSlider">🔍 Zoom dos Cards:</label>
+  <input type="range" id="zoomSlider" min="70" max="100" value="100" step="5" oninput="atualizarZoom(this.value)" />
+  <span class="zoom-value" id="zoomValue">100%</span>
+  <button onclick="resetarZoom()">🔄 Padrão</button>
+</div>
     
-    <div class="gap-control">
-      <label for="gapSlider">↔️ Espaçamento entre Cards:</label>
-      <input type="range" id="gapSlider" min="5" max="20" value="10" step="1" oninput="atualizarGap(this.value)" />
-      <span class="gap-value" id="gapValue">10px</span>
-      <button onclick="resetarGap()">🔄 Padrão</button>
-    </div>
+ 
+<div class="gap-control">
+  <label for="gapSlider">↔️ Espaçamento entre Cards:</label>
+  <input type="range" id="gapSlider" min="5" max="20" value="10" step="1" oninput="atualizarGap(this.value)" />
+  <span class="gap-value" id="gapValue">10px</span>
+  <button onclick="resetarGap()">🔄 Padrão</button>
+</div>
     
     <div id="totais"></div>
     <div id="painel"></div>
@@ -916,6 +981,17 @@
       } else {
         atualizarGap(10);
       }
+      
+      // Configurar modo gráfico inicial
+const modoGraficoSalvo = localStorage.getItem('modo_grafico');
+if (modoGraficoSalvo === '1') {
+  document.body.classList.add('modo-grafico');
+  // Encontrar o último botão e atualizar seu texto
+  const botoes = document.querySelectorAll('.botoes-container button');
+  if (botoes.length > 0) {
+    botoes[botoes.length - 1].textContent = '📋 Modo Texto';
+  }
+}
 
       // Carregar dados de prefixos
       fetch("https://raw.githubusercontent.com/Leandroxx10/painel-producao/main/dados-prefixos.json")
@@ -1067,7 +1143,7 @@
           ${m.parada ? '<div class="aviso-parada">🔧 Parada para manutenção</div>' : ''}
           <input type="checkbox" class="checkbox-parada" ${m.parada ? 'checked' : ''} 
             onchange="alternarParada('${m.id}', this.checked)" onclick="event.stopPropagation()" />
-          <h3>Máquina ${m.id} <span class="prefixo">(${m.prefixo || "Sem prefixo"})</span></h3>
+          <h3>${m.id} <span class="prefixo">(${m.prefixo || "Sem prefixo"})</span></h3>
           <div class="select-wrapper">
             <label>Prefixo:</label>
             <select class="prefixo-select" data-id="${m.id}">
@@ -1098,35 +1174,43 @@
         if (charts[m.id]) charts[m.id].destroy();
 
         charts[m.id] = new Chart(ctx, {
-          type: "bar",
-          data: {
-            labels: ["Molde", "Blank", "Neckring"],
-            datasets: [
-              {
+    type: "bar",
+    data: {
+        labels: ["Molde", "Blank", "Neckring"],
+        datasets: [
+            {
                 label: "Total",
                 data: [m.totalM, m.totalB, m.totalN],
                 backgroundColor: [getCor(m.totalM), getCor(m.totalB), "#cccccc"]
-              }
-            ]
-          },
-          options: {
-            responsive: true,
-            plugins: { 
-              legend: { display: false },
-              datalabels: {
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        plugins: { 
+            legend: { display: false },
+            datalabels: {
                 color: '#000',
                 anchor: 'end',
                 align: 'top',
                 formatter: (value) => value
-              }
-            },
-            scales: {
-              x: { stacked: true, grid: { display: false } },
-              y: { beginAtZero: true, grid: { color: "#e5e7eb" } }
             }
-          }
-        });
-
+        },
+        scales: {
+            x: { stacked: true, grid: { display: false } },
+            y: { 
+                beginAtZero: true, 
+                grid: { color: "#e5e7eb" },
+                // ADICIONE ESTAS 3 LINHAS:
+                suggestedMax: 30,
+                max: 30,
+                ticks: {
+                    stepSize: 1
+                }
+            }
+        }
+    }
+});
         // Configurar Choices.js para o select
         const select = div.querySelector(".prefixo-select");
         const choices = new Choices(select, {
@@ -1231,6 +1315,32 @@
       atualizarGap(10);
       document.getElementById("gapSlider").value = 10;
     }
+    
+    /* 
+ * ================================================================
+ * Função de Alternância de Visualização
+ * ================================================================
+ */
+function alternarVisualizacao() {
+  const body = document.body;
+  const botao = document.querySelector('.botoes-container button:last-child');
+  const modoGraficoAtivo = body.classList.toggle('modo-grafico');
+  
+  localStorage.setItem('modo_grafico', modoGraficoAtivo ? '1' : '0');
+  
+  if (modoGraficoAtivo) {
+    botao.textContent = '📋 Modo Texto';
+    falarComGrave('Modo gráfico ativado. Visualização simplificada com gráficos expandidos.');
+  } else {
+    botao.textContent = '📊 Modo Gráfico';
+    falarComGrave('Modo texto ativado. Visualização completa com informações detalhadas.');
+  }
+  
+  // Reaplicar zoom para garantir que funcione corretamente
+  const zoomAtual = document.getElementById('zoomSlider').value;
+  atualizarZoom(zoomAtual);
+}  
+    
 
     /* 
      * ================================================================
@@ -1301,7 +1411,7 @@
           }
         },
         {
-          frases: ["ligar inteligência artificial", "ativar painel"],
+          frases: ["ligar wmoldes", "ativar painel"],
           resposta: "Sistema ativado. Estou pronta para ajudar."
         },
         {
@@ -1316,6 +1426,8 @@
           }
         }
       ];
+      
+      
 
       // Verificar se é uma resposta fixa
       for (const item of respostasFixas) {
@@ -1455,6 +1567,8 @@
 
       falarComGrave(mensagem);
     }
+    
+    
 
     /* 
      * ================================================================
@@ -1734,6 +1848,43 @@
         pupila.style.display = "none";
       }
     });
+    
+    // Função para ajustar automaticamente o layout dos cards
+function ajustarLayoutCards() {
+  const painel = document.getElementById('painel');
+  const cards = document.querySelectorAll('.maquina');
+  const painelWidth = painel.clientWidth;
+  const cardWidth = 230; // Largura fixa dos cards (230px + 8px de gap)
+  const gap = 8;
+  
+  // Calcular quantos cards cabem na largura disponível
+  const cardsPorLinha = Math.floor(painelWidth / (cardWidth + gap));
+  
+  // Ajustar a altura do painel para caber todas as linhas
+  const numLinhas = Math.ceil(cards.length / cardsPorLinha);
+  const alturaNecessaria = numLinhas * (180 + gap) + 20; // 180px altura card + gap + margem
+  
+  painel.style.height = `${alturaNecessaria}px`;
+  
+  // Forçar redimensionamento da área de conteúdo
+  document.getElementById('conteudo').style.minHeight = `${alturaNecessaria + 100}px`;
+}
+
+// Executar quando a janela for redimensionada
+window.addEventListener('resize', ajustarLayoutCards);
+
+// Executar quando os dados forem carregados
+db.ref("maquinas").on("value", function(snapshot) {
+  // Dar um pequeno delay para o DOM atualizar
+  setTimeout(ajustarLayoutCards, 100);
+});
+
+// Executar também quando a página carregar
+document.addEventListener('DOMContentLoaded', function() {
+  // Esperar um pouco para garantir que tudo carregou
+  setTimeout(ajustarLayoutCards, 500);
+});
+    
   </script>
 </body>
 </html>
