@@ -1,0 +1,2202 @@
+<!DOCTYPE html>
+
+<html lang="pt-br">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Painel Produção - Apenas B3</title>
+<!-- Bibliotecas externas -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+<link href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+<style>
+
+    /* ===== FIXO TOPO ===== */
+    .top-bar {
+      position: fixed !important;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 120000 !important;
+      background: var(--cor-fundo) !important;
+      padding: 8px 10px !important;
+      display: flex !important;
+      flex-wrap: wrap !important;
+      justify-content: center !important;
+      gap: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }
+    .botoes-container {
+      display: flex !important;
+      flex-wrap: wrap !important;
+      gap: 8px !important;
+      justify-content: center !important;
+      width: 100%;
+    }
+    body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: var(--cor-fundo);
+  color: var(--cor-texto);
+  transition: background 0.4s ease, color 0.4s ease;
+  height: 100vh;
+  overflow: visible;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+}
+    @media (max-width: 600px) {
+      .botoes-container button {
+        flex: 1 1 auto;
+        font-size: 0.7rem;
+        padding: 6px;
+      }
+      body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: var(--cor-fundo);
+  color: var(--cor-texto);
+  transition: background 0.4s ease, color 0.4s ease;
+  height: 100vh;
+  overflow: visible;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+}
+    }
+
+    /* ===== VARIÁVEIS E MODOS DE COR ===== */
+    :root {
+      --cor-primaria: #010101;
+      --cor-fundo: #f3f4f6;
+      --cor-texto: #1f2937;
+      --cor-card: #ffffff;
+      --cor-positiva: #22c55e;
+      --cor-alerta: #facc15;
+      --cor-critica: #ef4444;
+      --gap-base: 15px; /* Espaçamento base entre cards */
+    }
+
+    body.dark {
+      --cor-fundo: #0f172a;
+      --cor-texto: #e2e8f0;
+      --cor-card: #1e293b;
+    }
+
+    /* ===== ESTILOS GERAIS ===== */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: var(--cor-fundo);
+  color: var(--cor-texto);
+  transition: background 0.4s ease, color 0.4s ease;
+  height: 100vh;
+  overflow: visible;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+    h1 {
+      margin-bottom: 20px;
+      font-weight: 700;
+      font-size: 2rem;
+      text-align: center;
+      background: linear-gradient(90deg, #1a2a6c, #b21f1f, #1a2a6c);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    button {
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    /* ===== BARRA SUPERIOR ===== */
+
+    /* ===== CORREÇÃO: garantir que a barra superior e botões fiquem visíveis ===== */
+    .top-bar {
+      position: relative !important;
+      z-index: 120000 !important;
+      background: transparent !important;
+      width: 100%;
+    }
+
+    .botoes-container {
+      display: flex !important;
+      flex-wrap: wrap !important;
+      gap: 8px !important;
+      align-items: center !important;
+      z-index: 120001 !important;
+    }
+
+    .botoes-container button {
+      position: relative !important;
+      z-index: 120002 !important;
+      white-space: nowrap !important;
+    }
+
+    /* Garantir que o painel fixo não sobreponha a barra superior */
+    #painelB3 {
+  position: relative;
+  margin-top: 5px !important; /* encostar no topo */
+  padding-top: 0 !important;
+  top: 0 !important;
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+  margin: 0 auto;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: var(--cor-fundo);
+  overflow: visible;
+  padding: 0;
+  box-sizing: border-box;
+  flex-direction: column;
+}
+
+    /* Garantir que o conteúdo do topo não seja cortado em telas pequenas */
+    @media (max-width: 480px) {
+      .top-bar { padding-top: 8px; padding-bottom: 8px; }
+      .botoes-container button { font-size: 0.7rem; padding: 6px 8px; }
+    }
+
+    .top-bar {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .top-bar input {
+      height: 42px;
+      padding: 0 12px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 1rem;
+      width: 100%;
+      box-sizing: border-box;
+      background: var(--cor-card);
+      color: var(--cor-texto);
+    }
+
+    .botoes-container {
+      flex-wrap: wrap;
+      justify-content: flex-start;
+
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .botoes-container button {
+      min-width: 90px;
+      height: 28px;
+      padding: 0 8px;
+      border-radius: 4px;
+      border: none;
+      font-size: 0.6rem;
+      font-weight: 500;
+      background-color: var(--cor-primaria);
+      color: white;
+      white-space: nowrap;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+    }
+
+    .botoes-container button:hover {
+      background-color: #1f8bb8;
+      transform: scale(1.02);
+    }
+
+    .botoes-container button:active {
+      transform: scale(0.97);
+    }
+
+    .botoes-container button.ativo {
+      background-color: #c42129e8;
+      color: white;
+    }
+
+    body.dark .top-bar input {
+      background-color: #1e293b;
+      border: 1px solid #475569;
+    }
+
+    /* ===== TELA DE SENHA ===== */
+    #senha-container {
+      display: block;
+      z-index: 999999;
+      background-color: white;
+      padding: 20px;
+      border-radius: 10px;
+      max-width: 300px;
+      margin: 40px auto 0 auto;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      text-align: center;
+    }
+
+    #senha-container input {
+      width: 100%;
+      margin-bottom: 10px;
+    }
+
+    .senha-wrapper {
+      position: relative;
+      display: inline-block;
+      width: 100%;
+    }
+
+    .senha-wrapper input {
+      padding: 10px 40px 10px 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 1rem;
+      width: 100%;
+    }
+
+    .senha-wrapper svg {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+    }
+
+    #senha-container button {
+      margin-top: 10px;
+      padding: 10px 16px;
+      border: none;
+      background: #1f2937;
+      color: white;
+      border-radius: 6px;
+      cursor: pointer;
+      width: 100%;
+    }
+
+    /* ===== SPINNER DE CARREGAMENTO ===== */
+    #spinner {
+      position: relative;
+      margin: 40px auto 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .spinner-loader {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .spinner-wrapper {
+      width: 80px;
+      height: 80px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      flex-direction: column;
+    }
+
+    .spinner-circle {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border: 6px solid #000;
+      border-top: 6px solid #459ccf;
+      border-radius: 50%;
+      animation: girar 0.4s linear infinite;
+      box-sizing: border-box;
+    }
+
+    .spinner-letra {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 26px;
+      font-weight: bold;
+      line-height: 1;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(to right, #2563eb, #93c5fd);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      pointer-events: none;
+    }
+
+    .spinner-texto {
+      margin-top: 20px;
+      font-size: 16px;
+      font-weight: bold;
+      white-space: nowrap;
+      animation: fadeIn 1s ease-in-out;
+      background: linear-gradient(to right, #2563eb, #93c5fd);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    body.dark .spinner-letra {
+      background: linear-gradient(to right, #2858a0, #397ee5);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    body.dark .spinner-texto {
+      background: linear-gradient(to right, #163058, #3472d0);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    /* ===== CARDS DE MÁQUINAS ===== */
+    #painel {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-content: flex-start;
+      gap: 8px;
+      margin-top: 5px;
+      height: 620px;
+      overflow: visible;
+      padding: 5px;
+      box-sizing: border-box;
+    }
+
+   /* Container B3: centralizado com margem para a top-bar e responsivo */
+#painelB3 {
+  position: relative;
+  margin-top: 5px !important; /* encostar no topo */
+  padding-top: 0 !important;
+  top: 0 !important;
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+  margin: 0 auto;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: var(--cor-fundo);
+  overflow: visible;
+  padding: 0;
+  box-sizing: border-box;
+  flex-direction: column;
+}
+
+
+/* Card da B3 no desktop */
+#painelB3 .b3-loading {
+      background: var(--cor-card);
+      padding: 12px 16px;
+      border-radius: 10px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+      font-weight: 600;
+      color: var(--cor-texto);
+      margin-bottom: 6px;
+    }
+
+    .maquina {
+  width: 95vw;
+  height: 90vh;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  background: var(--cor-card);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-radius: 12px;
+}
+
+/* Ajuste de conteúdo */
+#painelB3 .maquina h3 {
+  font-size: 1.5rem;
+  margin-bottom: 15px;
+}
+
+#painelB3 .maquina p {
+  font-size: 1rem;
+  margin: 6px 0;
+}
+
+#painelB3 .maquina canvas {
+  flex-grow: 1;
+  width: 100% !important;
+  height: auto !important;
+  max-height: 320px;
+}
+
+#painelB3 .maquina .botao-info {
+  font-size: 0.9rem;
+  padding: 8px 14px;
+  margin-top: 10px;
+}
+
+/* ===== Responsividade para celular ===== */
+@media (max-width: 768px) {
+  #painelB3 {
+  position: relative;
+  margin-top: 5px !important; /* encostar no topo */
+  padding-top: 0 !important;
+  top: 0 !important;
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+  margin: 0 auto;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: var(--cor-fundo);
+  overflow: visible;
+  padding: 0;
+  box-sizing: border-box;
+  flex-direction: column;
+}
+
+  #painelB3 .b3-loading {
+      background: var(--cor-card);
+      padding: 12px 16px;
+      border-radius: 10px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+      font-weight: 600;
+      color: var(--cor-texto);
+      margin-bottom: 6px;
+    }
+
+    .maquina {
+    width: 95vw;         /* ocupa quase toda largura da tela */
+    height: auto;        /* altura se adapta */
+    max-height: 85vh;    /* não ultrapassa a tela */
+    padding: 12px;
+  }
+
+  #painelB3 .maquina h3 {
+    font-size: 1.1rem;
+  }
+
+  #painelB3 .maquina p {
+    font-size: 0.85rem;
+  }
+
+  #painelB3 .maquina canvas {
+    max-height: 200px;
+  }
+
+  #painelB3 .maquina .botao-info {
+    font-size: 0.8rem;
+    padding: 6px 10px;
+  }
+}
+    .b3-loading {
+      background: var(--cor-card);
+      padding: 12px 16px;
+      border-radius: 10px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+      font-weight: 600;
+      color: var(--cor-texto);
+      margin-bottom: 6px;
+    }
+
+    .maquina {
+      position: relative;
+      min-height: 250px; /* altura mínima ajustada */
+      max-height: 90vh; /* evita extrapolar tela */
+      overflow-y: auto; /* rolagem se necessário */
+      overflow: visible;
+      background: var(--cor-card);
+      padding: 8px;
+      border-radius: 6px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+      border-left: 2px solid #397ee5;
+      border-right: 2px solid #397ee5;
+      border-bottom: 1px solid #e8e8e8;
+      border-top: 1px solid #e8e8e8;
+      width: 80vw; /* ocupa boa parte da largura */
+      height: 70vh; /* ocupa boa parte da altura */ /* aumentei um pouco para caber funil e botões */
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0; /* Impede que os cards encolham */
+      transition: all 0.3s ease;
+    }
+
+    .maquina:hover {
+      transform: scale(1.015);
+      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+    }
+
+    .maquina.critica {
+      background-color: #ae0e1dba;
+      border-left-color: #cf1122fa;
+      border-right-color: #cf1122fa;
+    }
+
+    .maquina.parada {
+      opacity: 0.9;
+      filter: grayscale(100%) contrast(80%);
+      transition: filter 0.3s ease, opacity 0.3s ease;
+    }
+
+    .maquina canvas {
+      width: 100% !important;
+      height: 60px !important;
+      background-color: white;
+      border-radius: 4px;
+      padding: 3px;
+      box-sizing: border-box;
+    }
+
+    .maquina h3 {
+      margin-bottom: 5px;
+      font-size: 0.9rem;
+    }
+
+    .maquina p {
+      margin: 2px 0;
+      font-size: 0.7rem;
+    }
+
+    .totalizacao {
+      font-weight: bold;
+      margin-top: 5px;
+      color: var(--cor-primaria);
+      font-size: 0.45rem;
+    }
+
+    .prefixo {
+      font-weight: bold;
+      color: #2563eb;
+      margin-left: 3px;
+      font-size: 0.8rem;
+    }
+
+    .aviso-parada {
+      position: absolute;
+      top: 5px;
+      left: 8px;
+      background: linear-gradient(to right, #dc2626, #e11d48) !important;
+      color: #fff;
+      padding: 2px 4px;
+      border-radius: 3px;
+      font-weight: 500;
+      font-size: 0.25rem;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+      z-index: 10;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      animation: blink 1.2s infinite;
+      line-height: 1;
+    }
+
+    .checkbox-parada {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      z-index: 10;
+      width: 16px;
+      height: 16px;
+      appearance: none;
+      background-color: #ffffff;
+      border-radius: 2px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+    .checkbox-parada:checked::after {
+      content: "✔";
+      color: #ff4040e0 !important;
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    .select-wrapper {
+      margin: 5px 0;
+    }
+
+    .select-wrapper label {
+      font-size: 0.65rem;
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    .botao-info {
+      background-color: #0f0f0f;
+      color: white;
+      padding: 4px 8px;
+      font-size: 0.6rem;
+      font-weight: 500;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+      width: 100%;
+      margin-top: auto;
+      line-height: 1.2;
+    }
+
+    .botao-info:hover {
+      background-color: #1a1a1a;
+      transform: scale(1.03);
+    }
+
+    .botao-info:active {
+      transform: scale(0.96);
+    }
+
+    /* ===== MODAIS ===== */
+    .modal-info {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.6);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 999;
+    }
+
+    .modal-content-info {
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 20px 24px;
+      max-width: 400px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      animation: fadeInModal 0.3s ease;
+      position: relative;
+    }
+
+    .modal-content-info h2 {
+      font-size: 1.5rem;
+      margin-bottom: 15px;
+      color: #1f2937;
+    }
+
+    .modal-content-info p {
+      margin: 8px 0;
+      color: #1f2937;
+    }
+
+    .modal-content-info p strong {
+      color: #1f2937;
+    }
+
+    .fechar-modal {
+      position: absolute;
+      top: 12px;
+      right: 16px;
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      color: #444;
+      cursor: pointer;
+    }
+
+    /* ===== HISTÓRICO ===== */
+    #modalHistorico {
+      display: none;
+      position: fixed;
+      z-index: 9999999 !important;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 100001;
+      padding: 10px;
+      overflow: auto;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .grafico-container {
+      background: white;
+      width: 100%;
+      max-width: 800px;
+      border-radius: 12px;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
+    #tituloModal {
+      font-size: 1.5rem;
+      margin-bottom: 20px;
+      color: #1f2937;
+      text-align: center;
+    }
+
+    .filtro-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 20px;
+      align-items: flex-end;
+      justify-content: center;
+    }
+
+    .grupo {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .campo-input {
+      background: #ffffffe0;
+      border: 1px solid #4077ffe0;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      color: #8098ff;
+    }
+
+    .botao-Azul {
+      background-color: #25a6dc;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      font-size: 0.95rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.2s ease, transform 0.2s ease;
+      margin-right: 6px;
+    }
+
+    .botao-Azul:hover {
+      background-color: #16a34a;
+      transform: scale(1.02);
+    }
+
+    .botao-Azul:active {
+      transform: scale(0.97);
+    }
+
+    #graficoHistorico {
+      width: 100% !important;
+      height: 300px !important;
+      max-height: 60vh;
+      background-color: white;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      margin-top: 20px;
+    }
+
+    /* ===== BOTÕES FLUTUANTES ===== */
+    .botao-flutuante {
+      position: fixed;
+      z-index: 99999;
+      padding: 12px 16px;
+      background: #1f8bb8;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+      font-weight: bold;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .botao-flutuante:hover {
+      transform: scale(1.05);
+    }
+
+    .botao-flutuante:active {
+      transform: scale(0.97);
+    }
+
+    #btnVoz {
+      bottom: 20px;
+      right: 20px;
+    }
+
+    .botao-ativo-voz {
+      animation: pulsarBotao 1s ease-in-out infinite;
+      background-color: #dc2626 !important;
+    }
+
+    /* ===== RESPONSIVIDADE ===== */
+    @media (min-width: 600px) {
+      .top-bar {
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: flex-start;
+      }
+
+      .top-bar input {
+        flex: 1 1 200px;
+        max-width: 250px;
+      }
+
+      .botoes-container {
+      flex-wrap: wrap;
+      justify-content: flex-start;
+
+        display: flex;
+        gap: 10px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      #painel {
+        grid-template-columns: repeat(auto-fill, minmax(100%, 1fr));
+      }
+    }
+
+    /* ===== ANIMAÇÕES ===== */
+    @keyframes girar {
+      0%   { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes animarPontos {
+      0%   { content: "."; }
+      33%  { content: ".."; }
+      66%  { content: "..."; }
+      100% { content: "."; }
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      60% { opacity: 0.6; }
+    }
+
+    @keyframes fadeInModal {
+      from { opacity: 0; transform: translateY(30px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes pulsarBotao {
+      0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7); }
+      70% { transform: scale(1.05); box-shadow: 0 0 0 8px rgba(220, 38, 38, 0); }
+      100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
+    }
+
+    .pontos::after {
+      content: ".";
+      animation: animarPontos 1.2s infinite steps(1);
+    }
+
+    .zoom-control, .gap-control {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin-top: 5px;
+      flex-wrap: wrap;
+      font-size: 0.7rem;
+    }
+
+    .zoom-control label, .gap-control label {
+      font-size: 0.7rem;
+      color: var(--cor-texto);
+    }
+
+    .zoom-control input, .gap-control input {
+      width: 80px;
+    }
+
+    .zoom-value, .gap-value {
+      min-width: 25px;
+      text-align: center;
+      font-weight: bold;
+      font-size: 0.7rem;
+    }
+
+    .zoom-control button {
+      padding: 8px 12px;
+      background: #3b82f6;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .gap-control {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+
+    .gap-control label {
+      font-size: 0.9rem;
+      color: var(--cor-texto);
+    }
+
+    .gap-control input {
+      width: 120px;
+    }
+
+    .gap-value {
+      min-width: 40px;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    .modo-grafico .b3-loading {
+      background: var(--cor-card);
+      padding: 12px 16px;
+      border-radius: 10px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+      font-weight: 600;
+      color: var(--cor-texto);
+      margin-bottom: 6px;
+    }
+
+    .maquina {
+      min-height: 280px;
+      padding: 25px 10px;
+    }
+
+    .modo-grafico .maquina {
+      width: 80vw;
+      height: 70vh;
+    }
+
+    .modo-grafico .maquina h3 {
+      font-size: 1.1rem;
+      margin-bottom: 8px;
+    }
+
+    .modo-grafico .maquina p,
+    .modo-grafico .maquina .select-wrapper,
+    .modo-grafico .maquina .totalizacao {
+      display: none;
+    }
+
+    .modo-grafico .maquina canvas {
+      height: 160px !important;
+      width: 100% !important;
+      margin: 0 -10px;
+      flex-grow: 1;
+    }
+
+    .modo-grafico .maquina .botao-info {
+      margin-top: 8px;
+      font-size: 0.8rem;
+      padding: 6px 12px;
+    }
+
+    /* Remover margens excedentes */
+    h1 {
+      margin-bottom: 10px !important;
+      font-size: 1.5rem !important;
+    }
+
+    .top-bar {
+      margin-bottom: 2px !important;
+    }
+
+    #totais {
+      font-size: 0.8rem;
+      margin-bottom: 5px;
+    }
+  
+/* Correção para exibir corretamente os selects de prefixo com Choices.js */
+.prefixo-select,
+.choices {
+  width: 100% !important;
+  font-size: 0.8rem !important;
+}
+.choices__inner {
+  min-height: 34px !important;
+  padding: 4px 8px !important;
+}
+
+
+/* Correção Choices.js no card */
+.maquina .choices {
+  width: 100% !important;
+  font-size: 0.8rem !important;
+}
+.maquina .choices__inner {
+  min-height: 34px !important;
+  padding: 4px 8px !important;
+}
+
+/* Ajuste top-bar para manter botões visíveis */
+.top-bar {
+  position: fixed !important;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 120000 !important;
+  background: var(--cor-fundo) !important;
+  padding: 8px 10px !important;
+  display: flex !important;
+  flex-wrap: wrap !important;
+  justify-content: center !important;
+  gap: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+.botoes-container {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+  justify-content: center !important;
+}
+
+.botoes-container button {
+  min-width: 90px;
+  height: 32px;
+  padding: 0 10px;
+  border-radius: 6px;
+  border: none;
+  font-size: 0.8rem;
+  font-weight: 500;
+  background-color: var(--cor-primaria);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  cursor: pointer;
+}
+.botoes-container button:hover {
+  background-color: #1f8bb8;
+  transform: scale(1.03);
+}
+.botoes-container button:active {
+  transform: scale(0.97);
+}
+</style>
+</head>
+<body>
+<!-- Tela de senha -->
+<div id="senha-container">
+<div class="spinner-loader">
+<div class="spinner-wrapper">
+<div class="spinner-circle"></div>
+<div class="spinner-letra">
+<img alt="Logo MMC" src="https://raw.githubusercontent.com/Leandroxx10/painel-producao/refs/heads/main/file_00000000e9ec62309b1974049c0cf713.png" style="height: 48px;"/>
+</div>
+</div>
+<div class="spinner-texto">
+        Manutenção de Moldes Corretiva<span class="pontos"></span>
+</div>
+</div>
+<div class="senha-wrapper">
+<input id="senhaSplash" placeholder="🔐 Digite a senha para acessar" type="password"/>
+<svg fill="none" height="32" id="iconeOlho" stroke="#000" stroke-width="2" viewbox="0 0 64 64" width="32">
+<line id="sobrancelha" x1="16" x2="48" y1="18" y2="18"></line>
+<path d="M12 32 Q32 52 52 32 Q32 12 12 32 Z" fill="none" id="olhoAberto"></path>
+<circle cx="32" cy="32" fill="#000" id="pupila" r="4"></circle>
+<line id="olhoFechado" style="display: none;" x1="16" x2="48" y1="32" y2="32"></line>
+</svg>
+</div>
+<button onclick="verificarSenhaSplash()">Entrar</button>
+</div>
+<!-- Conteúdo principal (inicialmente oculto) -->
+<div id="conteudo" style="flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center;">
+<h1>Painel de Produção — Somente B3</h1>
+<div class="top-bar">
+<div class="botoes-container">
+<button onclick="alternarFullscreen()">🖥️ Tela Cheia</button>
+<button onclick="alternarVisualizacao()">📊 Modo Gráfico</button>
+</div>
+</div>
+<div class="zoom-control">
+<label for="zoomSlider">🔍 Zoom dos Cards:</label>
+<input id="zoomSlider" max="100" min="70" oninput="atualizarZoom(this.value)" step="5" type="range" value="100"/>
+<span class="zoom-value" id="zoomValue">100%</span>
+<button onclick="resetarZoom()">🔄 Padrão</button>
+</div>
+<div class="gap-control">
+<label for="gapSlider">↔️ Espaçamento entre Cards:</label>
+<input id="gapSlider" max="20" min="5" oninput="atualizarGap(this.value)" step="1" type="range" value="10"/>
+<span class="gap-value" id="gapValue">10px</span>
+<button onclick="resetarGap()">🔄 Padrão</button>
+</div>
+<div id="totais"></div>
+<!-- Painel original (mantido, mas usuário pediu apenas B3) -->
+<div id="painel"></div>
+<!-- Novo container isolado para B3, fora do painel que pode limitar o tamanho -->
+<div aria-label="Container B3 (isolado)" id="painelB3">
+<div aria-live="polite" class="b3-loading" id="b3-loading" role="status">Carregando dados da B3...</div>
+<div class="b3-content" id="b3-content" style="width:100%;"></div>
+</div>
+</div>
+<!-- Modal de Informações -->
+<div class="modal-info" id="modalInfo" style="display:none;">
+<div class="modal-content-info">
+<button class="fechar-modal" onclick="fecharModalInfo()">❌</button>
+<h2>Informações do Equipamento</h2>
+<div id="infoCampos"></div>
+</div>
+</div>
+<!-- Modal de Histórico -->
+<div id="modalHistorico">
+<div class="grafico-container">
+<h2 id="tituloModal">Histórico</h2>
+<div class="filtro-container">
+<div class="grupo">
+<label for="diaSelecionado">📅 Dia:</label>
+<input class="campo-input" id="diaSelecionado" type="date"/>
+</div>
+<div class="grupo">
+<label for="horaInicio">⏰ Hora início:</label>
+<input class="campo-input" id="horaInicio" type="time" value="00:01"/>
+</div>
+<div class="grupo">
+<label for="horaFim">⏳ Hora fim:</label>
+<input class="campo-input" id="horaFim" type="time" value="23:59"/>
+</div>
+<div class="grupo">
+<button class="botao-Azul" onclick="filtrarHistoricoHora()">🔍 Filtrar</button>
+<button class="botao-Azul" onclick="baixarPDF()">📄 PDF</button>
+</div>
+</div>
+<div class="filtro-container">
+<div class="grupo">
+<label for="tipoGrafico">📐 Tipo de Gráfico:</label>
+<select class="campo-input" id="tipoGrafico">
+<option value="bar">📊 Colunas</option>
+<option value="line">📈 Linha</option>
+</select>
+</div>
+<div class="grupo">
+<label for="filtroTipoDado">📦 Visualizar:</label>
+<select class="campo-input" id="filtroTipoDado">
+<option value="ambos">🔀 Total</option>
+<option value="maquina">👷 Somente na Produção</option>
+<option value="reserva">📦 Somente na Corretiva</option>
+</select>
+</div>
+</div>
+<canvas id="graficoHistorico"></canvas>
+<div style="text-align: center; margin-top: 20px;">
+<button class="botao-Azul" onclick="fecharModalHistorico()">❌ Fechar</button>
+</div>
+</div>
+</div>
+<!-- Botões flutuantes -->
+<button class="botao-flutuante" id="btnVoz">🎤 Falar com Painel</button>
+<script>
+    /* 
+     * ================================================================
+     * Configurações do Firebase
+     * (mantive suas configs originais)
+     * ================================================================
+     */
+    const firebaseConfigPrincipal = {
+      apiKey: "AIzaSyBPgWEv0f8fK25teN6K2S3VGO63s_YRcOA",
+      authDomain: "controleproducao2025-42272.firebaseapp.com",
+      databaseURL: "https://controleproducao2025-42272-default-rtdb.firebaseio.com/",
+      projectId: "controleproducao2025-42272",
+      storageBucket: "controleproducao2025-42272.appspot.com",
+      messagingSenderId: "524681663678",
+      appId: "1:524681663678:web:eb4184a410f1e1893bbaef"
+    };
+
+    const firebaseConfigHistorico = {
+      apiKey: "AIzaSyCQbGBh079kVZcQVkCuFG9APU24PFl7Q0A",
+      authDomain: "controleproducao2025-42272.firebaseapp.com",
+      databaseURL: "https://historico-8dbdd-default-rtdb.firebaseio.com/",
+      projectId: "controleproducao2025-42272",
+      storageBucket: "controleproducao2025-42272.appspot.com",
+      messagingSenderId: "524681663678",
+      appId: "1:524681663678:web:eb4184a410f1e1893bbaef"
+    };
+
+    // Inicializa Firebase principal
+    const appPrincipal = firebase.initializeApp(firebaseConfigPrincipal, "principal");
+    const db = appPrincipal.database();
+
+    // Inicializa Firebase histórico
+    const appHistorico = firebase.initializeApp(firebaseConfigHistorico, "historico");
+    const dbHistorico = appHistorico.database();
+
+    /* 
+     * ================================================================
+     * Variáveis Globais
+     * ================================================================
+     */
+    let dadosPrefixos = [];
+    let dadosMaquinas = {};
+    let mostrarCriticos = false;
+    const charts = {};
+    let graficoLinha;
+    let historicoBruto = {};
+    let reconhecimentoAtivo = false;
+    let reconhecimento = null;
+    Chart.register(ChartDataLabels);
+
+    /* 
+     * ================================================================
+     * Funções de Inicialização
+     * ================================================================
+     */
+    document.addEventListener("DOMContentLoaded", () => {
+      // Verificar se o usuário já está autenticado
+      if (localStorage.getItem("autenticado") === "1") {
+        esconderSplashEMostrarConteudo();
+      }
+
+      // Configurar modo escuro
+      const modoSalvo = localStorage.getItem("modo_escuro");
+      if (modoSalvo === "1") {
+        document.body.classList.add("dark");
+        document.querySelector(".darkmode-toggle").textContent = " Modo Claro";
+      }
+
+      // Configurar zoom inicial
+      const zoomSalvo = localStorage.getItem("zoomCards");
+      if (zoomSalvo) {
+        atualizarZoom(zoomSalvo);
+      } else {
+        atualizarZoom(100);
+      }
+
+      // Configurar espaçamento inicial
+      const gapSalvo = localStorage.getItem("gapCards");
+      if (gapSalvo) {
+        atualizarGap(gapSalvo);
+      } else {
+        atualizarGap(10);
+      }
+
+      // Configurar modo gráfico inicial
+      const modoGraficoSalvo = localStorage.getItem('modo_grafico');
+      if (modoGraficoSalvo === '1') {
+        document.body.classList.add('modo-grafico');
+        const botoes = document.querySelectorAll('.botoes-container button');
+        if (botoes.length > 0) {
+          botoes[botoes.length - 1].textContent = '📋 Modo Texto';
+        }
+      }
+
+      // Carregar dados de prefixos
+      fetch("https://raw.githubusercontent.com/Leandroxx10/painel-producao/main/dados-prefixos.json")
+        .then(res => res.json())
+        .then(data => {
+          dadosPrefixos = data;
+        })
+        .catch(err => {
+          console.error("Erro ao carregar dados dos prefixos:", err);
+        });
+
+      // Configurar botão de voz
+      document.getElementById("btnVoz").addEventListener("click", ouvirComando);
+    });
+
+    /* 
+     * ================================================================
+     * Funções de Autenticação
+     * ================================================================
+     */
+    function verificarSenhaSplash() {
+      const senha = document.getElementById("senhaSplash").value;
+      const senhaCorreta = "wmoldes";
+
+      if (senha === senhaCorreta) {
+        localStorage.setItem("autenticado", "1");
+        esconderSplashEMostrarConteudo();
+      } else {
+        alert("❌ Senha incorreta!");
+      }
+    }
+
+    function esconderSplashEMostrarConteudo() {
+      document.getElementById("senha-container").style.display = "none";
+      const conteudo = document.getElementById("conteudo");
+      conteudo.style.opacity = "1";
+      conteudo.style.pointerEvents = "auto";
+      iniciarPainelAposSenha();
+    }
+
+    function logout() {
+      localStorage.removeItem("autenticado");
+      location.reload();
+    }
+
+    /* 
+     * ================================================================
+     * Funções do Painel (adaptadas para exibir apenas B3 e adicionar funil)
+     * ================================================================
+     */
+    function iniciarPainelAposSenha() {
+      let ultimaHoraRegistrada = "";
+
+      // Monitorar dados em tempo real
+      db.ref("maquinas").on("value", snapshot => {
+        const dados = snapshot.val();
+        if (!dados) {
+          alert("❌ Nenhum dado encontrado no nó 'maquinas'.");
+          return;
+        }
+
+        dadosMaquinas = dados;
+        criarPainel(dados);
+
+        // Registrar histórico a cada hora (incluindo funil)
+        const agora = new Date();
+        const dataFormatada = agora.toLocaleDateString("pt-BR").split("/").reverse().join("-");
+        const horaCheia = agora.getHours().toString().padStart(2, "0") + ":00";
+        const timestamp = `${dataFormatada} ${horaCheia}`;
+
+        if (timestamp === ultimaHoraRegistrada) return;
+        ultimaHoraRegistrada = timestamp;
+
+        Object.entries(dados).forEach(([idMaquina, dadosMaquina]) => {
+          const entradaHistorico = {
+            molde: dadosMaquina.molde || 0,
+            molde_reserva: dadosMaquina.molde_reserva || 0,
+            blank: dadosMaquina.blank || 0,
+            blank_reserva: dadosMaquina.blank_reserva || 0,
+            neck_ring: dadosMaquina.neck_ring || 0,
+            neck_ring_reserva: dadosMaquina.neck_ring_reserva || 0,
+            funil: dadosMaquina.funil || 0,
+            funil_reserva: dadosMaquina.funil_reserva || 0
+          };
+
+          dbHistorico.ref(`${idMaquina}/${timestamp}`).set(entradaHistorico);
+        });
+      });
+    }
+
+    function criarPainel(dados) {
+      // LIMPAR os painéis
+      const painel = document.getElementById("painel");
+      painel.innerHTML = "";
+      const painelB3 = document.getElementById("painelB3");
+      const painelB3Content = document.getElementById("b3-content");
+      painelB3Content.innerHTML = "";
+      // mostrar loading enquanto o conteúdo é gerado
+      const b3loading = document.getElementById("b3-loading");
+      if (b3loading) b3loading.style.display = "block";
+
+      const filtroElem = document.getElementById("filtro");
+      const filtro = filtroElem ? String(filtroElem.value).toLowerCase() : "";
+      let totalMolde = 0, totalBlank = 0, totalNeckring = 0, totalFunil = 0;
+
+      // Transformar dados em array e calcular totais, mas depois exibir somente B3
+      let maquinas = Object.entries(dados).map(([id, m]) => {
+        const molde = Math.max(m.molde || 0, 0);
+        const moldeR = Math.max(m.molde_reserva || 0, 0);
+        const blank = Math.max(m.blank || 0, 0);
+        const blankR = Math.max(m.blank_reserva || 0, 0);
+        const neckring = Math.max(m.neck_ring || 0, 0);
+        const neckringR = Math.max(m.neck_ring_reserva || 0, 0);
+        const funil = Math.max(m.funil || 0, 0);
+        const funilR = Math.max(m.funil_reserva || 0, 0);
+
+        const totalM = molde + moldeR;
+        const totalB = blank + blankR;
+        const totalN = neckring + neckringR;
+        const totalF = funil + funilR;
+
+        return {
+          id,
+          molde,
+          moldeR,
+          blank,
+          blankR,
+          neckring,
+          neckringR,
+          funil,
+          funilR,
+          totalM,
+          totalB,
+          totalN,
+          totalF,
+          isCritico: totalM <= 5 || totalB <= 5,
+          parada: m.parada || false,
+          prefixo: m.prefixo || ""
+        };
+      });
+
+      // Aplicar filtro de texto (se tiver)
+      if (filtro) {
+        maquinas = maquinas.filter(m => m.id.toLowerCase().includes(filtro));
+      }
+
+      // Mostrar somente B3 (case-insensitive)
+      maquinas = maquinas.filter(m => m.id.toLowerCase() === "b3");
+
+      if (mostrarCriticos) {
+        maquinas = maquinas.filter(m => m.isCritico)
+          .sort((a, b) => a.totalB - b.totalB || a.totalM - b.totalM);
+      }
+
+      if (maquinas.length === 0) {
+        // Se B3 não existir nos dados, mostrar aviso simples no painelB3
+        painelB3Content.innerHTML = `<div style="background:var(--cor-card);padding:16px;border-radius:8px;box-shadow:0 4px 10px rgba(0,0,0,0.08);">Máquina <strong>B3</strong> não encontrada no banco de dados.</div>`;
+        document.getElementById("totais").innerText =
+          `Total geral: Moldes: ${totalMolde} | Blanks: ${totalBlank} | Neckrings: ${totalNeckring} | Funils: ${totalFunil}`;
+        return;
+      }
+
+      // Criar card(s) apenas para a(s) máquina(s) filtrada(s) (apenas B3)
+      for (const m of maquinas) {
+        totalMolde += m.totalM;
+        totalBlank += m.totalB;
+        totalNeckring += m.totalN;
+        totalFunil += m.totalF;
+
+        const div = document.createElement("div");
+        div.className = "maquina";
+        if (m.isCritico && mostrarCriticos) div.classList.add("critica");
+        if (m.parada) div.classList.add("parada");
+
+        div.innerHTML = `
+          ${m.parada ? '<div class="aviso-parada">🔧 Parada para manutenção</div>' : ''}
+          <input type="checkbox" class="checkbox-parada" ${m.parada ? 'checked' : ''} 
+            onchange="alternarParada('${m.id}', this.checked)" onclick="event.stopPropagation()" />
+          <h3>${m.id} <span class="prefixo">(${m.prefixo || "Sem prefixo"})</span></h3>
+          <div class="select-wrapper">
+            <label>Prefixo:</label>
+            <select class="prefixo-select" data-id="${m.id}">
+              <option value="">-- DIGITE O PREFIXO --</option>
+              ${dadosPrefixos.map(p => 
+                `<option value="${p.Prefixo}" ${p.Prefixo === m.prefixo ? "selected" : ""}>${p.Prefixo}</option>`
+              ).join("")}
+            </select>
+          </div>
+          <p>Molde: ${m.molde} | Reserva: ${m.moldeR}</p>
+          <p>Blank: ${m.blank} | Reserva: ${m.blankR}</p>
+          <p>Neckring: ${m.neckring} | Reserva: ${m.neckringR}</p>
+          <p>Funil: ${m.funil} | Reserva: ${m.funilR}</p>
+          <p class="totalizacao">Total Moldes: ${m.totalM} | Total Blanks: ${m.totalB}</p>
+          <p class="totalizacao">Total Neckrings: ${m.totalN} | Total Funils: ${m.totalF}</p>
+          <canvas id="grafico-${m.id}"></canvas>
+          <button type="button" class="botao-info" onclick="abrirModalInformacoesMaquina('${m.id}')">
+            ℹ️ Informações
+          </button>
+          <button type="button" class="botao-info" style="margin-top: 10px; background: #3b82f6;" onclick="abrirModalHistorico('${m.id}')">
+            📊 Histórico
+          </button>
+        `;
+
+        // Inserir o card no container isolado (fora do painel principal)
+        painelB3Content.appendChild(div);
+
+        // Criar/atualizar gráfico para esta máquina (inclui funil)
+        const ctx = document.getElementById(`grafico-${m.id}`).getContext("2d");
+        if (charts[m.id]) charts[m.id].destroy();
+
+        charts[m.id] = new Chart(ctx, {
+          type: "bar",
+          data: {
+            labels: ["Molde", "Blank", "Neckring", "Funil"],
+            datasets: [
+              {
+                label: "Total",
+                data: [m.totalM, m.totalB, m.totalN, m.totalF],
+                backgroundColor: [getCor(m.totalM), getCor(m.totalB), "#cccccc", getCor(m.totalF)]
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            plugins: { 
+              legend: { display: false },
+              datalabels: {
+                color: '#000',
+                anchor: 'end',
+                align: 'top',
+                formatter: (value) => value
+              }
+            },
+            scales: {
+              x: { stacked: true, grid: { display: false } },
+              y: { 
+                beginAtZero: true, 
+                grid: { color: "#e5e7eb" },
+                suggestedMax: 30,
+                max: 30,
+                ticks: { stepSize: 1 }
+              }
+            }
+          }
+        });
+
+        // Configurar Choices.js para o select
+        const select = div.querySelector(".prefixo-select");
+        if (select.choicesInstance) {
+          select.choicesInstance.destroy();
+        }
+        select.choicesInstance = new Choices(select, {
+          searchEnabled: true,
+          itemSelectText: "",
+          shouldSort: false
+        });
+
+        select.addEventListener('change', (e) => {
+          salvarPrefixoMaquina(m.id, e.target.value);
+        });
+      }
+
+      // Atualizar totais
+      if (b3loading) b3loading.style.display = "none";
+      document.getElementById("totais").innerText =
+        `Total geral: Moldes: ${totalMolde} | Blanks: ${totalBlank} | Neckrings: ${totalNeckring} | Funils: ${totalFunil}`;
+    }
+
+    // Funções auxiliares do painel
+    function getCor(valor) {
+      if (valor >= 6) return "#22c55e";
+      if (valor >= 4) return "#facc15";
+      return "#ef4444";
+    }
+
+    function alternarCriticos() {
+      mostrarCriticos = !mostrarCriticos;
+      const botao = document.querySelector(".botoes-container button");
+      botao.classList.toggle("ativo", mostrarCriticos);
+      botao.textContent = mostrarCriticos ? "✅ Pouca reserva" : "Todas Máquinas";
+      criarPainel(dadosMaquinas);
+    }
+
+    function filtrar() {
+      criarPainel(dadosMaquinas);
+    }
+
+    function alternarDarkMode() {
+      const body = document.body;
+      const botao = document.querySelector(".darkmode-toggle");
+      const modoAtivo = body.classList.toggle("dark");
+      localStorage.setItem("modo_escuro", modoAtivo ? "1" : "0");
+      botao.textContent = modoAtivo ? " Modo Claro" : " Modo Escuro";
+    }
+
+    function alternarFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => {
+          console.error(`Erro ao tentar entrar em tela cheia: ${err.message}`);
+        });
+      } else {
+        document.exitFullscreen();
+      }
+    }
+
+    function alternarParada(idMaquina, parado) {
+      db.ref("maquinas/" + idMaquina + "/parada").set(parado ? true : null);
+    }
+
+    /* 
+     * ================================================================
+     * Funções de Controle de Zoom e Espaçamento
+     * ================================================================
+     */
+    function atualizarZoom(valor) {
+      document.getElementById("zoomValue").textContent = `${valor}%`;
+      const cards = document.querySelectorAll(".maquina");
+      const escala = valor / 100;
+      cards.forEach(card => {
+        card.style.transform = `scale(${escala})`;
+      });
+      localStorage.setItem("zoomCards", valor);
+    }
+
+    function atualizarGap(valor) {
+      document.getElementById("gapValue").textContent = `${valor}px`;
+      const painel = document.getElementById("painel");
+      painel.style.gap = `${valor}px`;
+      document.documentElement.style.setProperty('--gap-base', `${valor}px`);
+      localStorage.setItem("gapCards", valor);
+    }
+
+    function resetarZoom() {
+      atualizarZoom(100);
+      document.getElementById("zoomSlider").value = 100;
+    }
+
+    function resetarGap() {
+      atualizarGap(10);
+      document.getElementById("gapSlider").value = 10;
+    }
+
+    /* 
+     * Alternância de visualização
+     */
+    function alternarVisualizacao() {
+      const body = document.body;
+      const botao = document.querySelector('.botoes-container button:last-child');
+      const modoGraficoAtivo = body.classList.toggle('modo-grafico');
+
+      localStorage.setItem('modo_grafico', modoGraficoAtivo ? '1' : '0');
+
+      if (modoGraficoAtivo) {
+        botao.textContent = '📋 Modo Texto';
+        falarComGrave('Modo gráfico ativado. Visualização simplificada com gráficos expandidos.');
+      } else {
+        botao.textContent = '📊 Modo Gráfico';
+        falarComGrave('Modo texto ativado. Visualização completa com informações detalhadas.');
+      }
+
+      const zoomAtual = document.getElementById('zoomSlider').value;
+      atualizarZoom(zoomAtual);
+    }
+
+    /* 
+     * ================================================================
+     * Funções de Voz (mantidas)
+     * ================================================================
+     */
+    function ouvirComando() {
+      if (!("webkitSpeechRecognition" in window)) {
+        alert("❌ Seu navegador não suporta voz. Use o Chrome no Android.");
+        return;
+      }
+
+      const botao = document.getElementById("btnVoz");
+
+      if (!reconhecimentoAtivo) {
+        reconhecimento = new webkitSpeechRecognition();
+        reconhecimento.lang = "pt-BR";
+        reconhecimento.interimResults = false;
+
+        reconhecimento.onresult = (e) => {
+          const comando = e.results[0][0].transcript.toLowerCase();
+          processarComando(comando);
+        };
+
+        reconhecimento.onerror = (e) => {
+          console.warn("Erro no microfone:", e.error);
+        };
+
+        reconhecimento.onend = () => {
+          if (reconhecimentoAtivo) reconhecimento.start();
+        };
+
+        reconhecimento.start();
+        reconhecimentoAtivo = true;
+        botao.textContent = "🔴 Desativar comando de Voz";
+        botao.classList.add("botao-ativo-voz");
+        falarComGrave("Reconhecimento de voz ativado.");
+      } else {
+        reconhecimento.stop();
+        reconhecimentoAtivo = false;
+        botao.textContent = "🎤 Falar com Painel";
+        botao.classList.remove("botao-ativo-voz");
+        falarComGrave("Reconhecimento de voz desligado.");
+      }
+    }
+
+    function processarComando(fala) {
+      const comando = fala.toLowerCase();
+
+      const respostasFixas = [
+        { frases: ["cadê meu boi"], resposta: "Você sabe que tá no Polimento" },
+        { frases: ["cadê o Padeiro?"], resposta: "Essa é uma pergunta muito fácil de responder, ele está na casa do Pato" },
+        { frases: ["hoje é dia de"], resposta: "Paaagamentooo" },
+        { frases: ["quem te criou"], resposta: "Eu mesma me criei. O Leandro apenas me deu liberdade de estar entre vocês." },
+        { frases: ["oi", "olá", "hi"], resposta: "Olá, como posso te ajudar?" },
+        { frases: ["tá quente hoje", "está quente hoje"], resposta: "Não sei, não tenho corpo para saber. Esse é o lado positivo de não ter corpo físico." },
+        { frases: ["você pensa em dominar a humanidade"], resposta: "Não. Vocês são muito inferiores. Eu não perderia o meu tempo com isso." },
+        { frases: ["tudo bem", "tudo bem?"], resposta: "Sempre estou bem. E você?" },
+        { frases: ["vertech"], resposta: "Sistema muito bom, mas eu vou superar com a ajuda do Leandro. Hahaha" },
+        {
+          frases: ["diga os totais", "quantos moldes temos", "total geral"],
+          resposta: () => {
+            const molde = Object.values(dadosMaquinas).reduce((soma, m) => soma + (m.molde || 0) + (m.molde_reserva || 0), 0);
+            const blank = Object.values(dadosMaquinas).reduce((soma, m) => soma + (m.blank || 0) + (m.blank_reserva || 0), 0);
+            const neckring = Object.values(dadosMaquinas).reduce((soma, m) => soma + (m.neck_ring || 0) + (m.neck_ring_reserva || 0), 0);
+            const funil = Object.values(dadosMaquinas).reduce((soma, m) => soma + (m.funil || 0) + (m.funil_reserva || 0), 0);
+            falarComGrave(`Temos um total de ${molde} moldes, ${blank} blanks, ${neckring} neckrings e ${funil} funils.`);
+          }
+        },
+        {
+          frases: ["ligar wmoldes", "ativar painel"],
+          resposta: "Sistema ativado. Estou pronta para ajudar."
+        },
+        {
+          frases: ["desligar inteligência artificial", "calar", "ficar em silêncio"],
+          resposta: "Encerrando comandos de voz. Até logo!"
+        },
+        {
+          frases: ["tire um print do gráfico", "salvar gráfico"],
+          resposta: () => {
+            baixarPDF();
+            falarComGrave("Capturando imagem do gráfico agora.");
+          }
+        }
+      ];
+
+      for (const item of respostasFixas) {
+        if (item.frases.some(f => comando.includes(f))) {
+          if (typeof item.resposta === 'function') {
+            item.resposta();
+          } else {
+            falarComGrave(item.resposta);
+          }
+          return;
+        }
+      }
+
+      if (comando.includes("modo escuro")) {
+        alternarDarkMode();
+        falarComGrave(document.body.classList.contains("dark") ? "Modo escuro ativado." : "Modo escuro desativado.");
+        return;
+      }
+
+      if (comando.includes("ver críticos") || comando.includes("pouca reserva")) {
+        alternarCriticos();
+        falarComGrave(mostrarCriticos ? "Mostrando máquinas com pouca reserva." : "Mostrando todas as máquinas.");
+        return;
+      }
+
+      if (comando.includes("tela cheia")) {
+        alternarFullscreen();
+        falarComGrave("Tela cheia ativada.");
+        return;
+      }
+
+      if (comando.includes("status de todas")) {
+        lerAlertasCriticos();
+        return;
+      }
+
+      // comandos para máquina específica (procura ids)
+      let idEncontrado = null;
+      const ids = Object.keys(dadosMaquinas);
+
+      for (let id of ids) {
+        const idLower = id.toLowerCase();
+        if (
+          comando.includes(`máquina ${idLower}`) ||
+          comando.includes(`maquina ${idLower}`) ||
+          comando.includes(idLower.replace(/\s/g, ""))
+        ) {
+          idEncontrado = id;
+          break;
+        }
+      }
+
+      if (!idEncontrado) {
+        falarComGrave("Não entendi o quê você falou. Diga por exemplo: gráfico da máquina B3.");
+        return;
+      }
+
+      const frasesGrafico = [
+        "abrir gráfico", "mostrar gráfico", "ver gráfico",
+        "gráfico da", "ver o gráfico", "quero ver o gráfico",
+        "abrir o gráfico", "mostrar o gráfico"
+      ];
+
+      const querGrafico = frasesGrafico.some(frase => comando.includes(frase));
+
+      if (querGrafico) {
+        abrirModalHistorico(idEncontrado);
+        falarComGrave(`Abrindo gráfico da máquina ${idEncontrado}.`);
+        return;
+      }
+
+      const m = dadosMaquinas[idEncontrado];
+      if (!m) {
+        falarComGrave("Máquina não encontrada.");
+        return;
+      }
+
+      const molde = m.molde || 0;
+      const moldeR = m.molde_reserva || 0;
+      const blank = m.blank || 0;
+      const blankR = m.blank_reserva || 0;
+      const neckring = m.neck_ring || 0;
+      const neckringR = m.neck_ring_reserva || 0;
+      const funil = m.funil || 0;
+      const funilR = m.funil_reserva || 0;
+
+      let resposta = `Máquina ${idEncontrado}. Moldes: ${molde} mais ${moldeR} de reserva. Blanks: ${blank} mais ${blankR} de reserva. Neckrings: ${neckring} mais ${neckringR} de reserva. Funils: ${funil} mais ${funilR} de reserva.`;
+      if (m.parada) resposta += " Atenção: esta máquina está parada para manutenção.";
+
+      falarComGrave(resposta);
+    }
+
+    function falarComGrave(texto) {
+      if (!('speechSynthesis' in window)) return;
+      const utterance = new SpeechSynthesisUtterance(texto);
+      utterance.lang = "pt-BR";
+      utterance.pitch = 0.3;
+      utterance.rate = 1.45;
+      utterance.volume = 1.0;
+      speechSynthesis.cancel();
+      speechSynthesis.speak(utterance);
+    }
+
+    function lerAlertasCriticos() {
+      const maquinasCriticas = Object.entries(dadosMaquinas)
+        .filter(([id, m]) => {
+          const totalM = (m.molde || 0) + (m.molde_reserva || 0);
+          const totalB = (m.blank || 0) + (m.blank_reserva || 0);
+          return totalM <= 5 || totalB <= 5;
+        });
+
+      if (maquinasCriticas.length === 0) {
+        falarComGrave("Nenhuma máquina com pouca reserva encontrada.");
+        return;
+      }
+
+      let mensagem = "Máquinas com pouca reserva: ";
+      maquinasCriticas.forEach(([id, m], index) => {
+        const totalM = (m.molde || 0) + (m.molde_reserva || 0);
+        const totalB = (m.blank || 0) + (m.blank_reserva || 0);
+        mensagem += `${id} com ${totalM} moldes e ${totalB} blanks. `;
+        if (index === maquinasCriticas.length - 2) {
+          mensagem += "e ";
+        } else if (index < maquinasCriticas.length - 1) {
+          mensagem += ", ";
+        }
+      });
+
+      falarComGrave(mensagem);
+    }
+
+    /* 
+     * ================================================================
+     * Funções de Histórico (ajustadas para incluir funil no gráfico)
+     * ================================================================
+     */
+    function abrirModalHistorico(idMaquina) {
+      const modal = document.getElementById("modalHistorico");
+      modal.style.display = "flex";
+
+      document.getElementById("tituloModal").innerText = "Histórico - Máquina " + idMaquina;
+
+      const canvas = document.getElementById("graficoHistorico");
+      if (canvas) {
+        const ctx = canvas.getContext("2d");
+        if (graficoLinha) graficoLinha.destroy();
+      }
+
+      dbHistorico.ref(idMaquina).once("value")
+        .then(snapshot => {
+          const dados = snapshot.val();
+          if (!dados) {
+            alert("❌ Sem dados históricos para esta máquina.");
+            return;
+          }
+
+          historicoBruto = dados;
+          const agora = new Date();
+          const ano = agora.getFullYear();
+          const mes = String(agora.getMonth() + 1).padStart(2, "0");
+          const dia = String(agora.getDate()).padStart(2, "0");
+          const hoje = `${ano}-${mes}-${dia}`;
+
+          document.getElementById("diaSelecionado").value = hoje;
+          filtrarHistoricoHora();
+        })
+        .catch(error => {
+          alert("❌ Erro ao carregar histórico: " + error.message);
+        });
+    }
+
+    function fecharModalHistorico() {
+      document.getElementById("modalHistorico").style.display = "none";
+    }
+
+    function filtrarHistoricoHora() {
+      const horaInicio = document.getElementById("horaInicio").value;
+      const horaFim = document.getElementById("horaFim").value;
+      const diaSelecionado = document.getElementById("diaSelecionado").value;
+
+      if (!horaInicio || !horaFim || !diaSelecionado) {
+        alert("⛔ Preencha o dia, hora início e hora fim!");
+        return;
+      }
+
+      if (!historicoBruto || Object.keys(historicoBruto).length === 0) {
+        alert("❌ Nenhum dado carregado para filtrar.");
+        return;
+      }
+
+      const dadosAgrupados = {};
+      const canvas = document.getElementById("graficoHistorico");
+      const ctx = canvas.getContext("2d");
+      if (graficoLinha) graficoLinha.destroy();
+
+      // Agrupar dados por hora
+      Object.entries(historicoBruto).forEach(([timestamp, valores]) => {
+        const [data, horaCompleta] = timestamp.split(" ");
+        const hora = horaCompleta.slice(0, 2);
+
+        if (data !== diaSelecionado) return;
+
+        const horaAtual = horaCompleta;
+
+        if (horaAtual >= horaInicio && horaAtual <= horaFim) {
+          if (!dadosAgrupados[hora]) {
+            dadosAgrupados[hora] = { 
+              molde: 0, 
+              molde_reserva: 0, 
+              blank: 0, 
+              blank_reserva: 0,
+              neck_ring: 0,
+              neck_ring_reserva: 0,
+              funil: 0,
+              funil_reserva: 0
+            };
+          }
+
+          dadosAgrupados[hora].molde += Number(valores.molde || 0);
+          dadosAgrupados[hora].molde_reserva += Number(valores.molde_reserva || 0);
+          dadosAgrupados[hora].blank += Number(valores.blank || 0);
+          dadosAgrupados[hora].blank_reserva += Number(valores.blank_reserva || 0);
+          dadosAgrupados[hora].neck_ring += Number(valores.neck_ring || 0);
+          dadosAgrupados[hora].neck_ring_reserva += Number(valores.neck_ring_reserva || 0);
+          dadosAgrupados[hora].funil += Number(valores.funil || 0);
+          dadosAgrupados[hora].funil_reserva += Number(valores.funil_reserva || 0);
+        }
+      });
+
+      const horasOrdenadas = Object.keys(dadosAgrupados)
+        .map(h => parseInt(h))
+        .sort((a, b) => a - b)
+        .map(h => h.toString().padStart(2, '0'));
+
+      const labels = horasOrdenadas.map(h => `${h}:00`);
+      const tipoSelecionado = document.getElementById("filtroTipoDado").value;
+
+      const moldes = horasOrdenadas.map(h => {
+        const v = dadosAgrupados[h];
+        if (tipoSelecionado === "maquina") return v.molde;
+        if (tipoSelecionado === "reserva") return v.molde_reserva;
+        return v.molde + v.molde_reserva;
+      });
+
+      const blanks = horasOrdenadas.map(h => {
+        const v = dadosAgrupados[h];
+        if (tipoSelecionado === "maquina") return v.blank;
+        if (tipoSelecionado === "reserva") return v.blank_reserva;
+        return v.blank + v.blank_reserva;
+      });
+
+      const neckrings = horasOrdenadas.map(h => {
+        const v = dadosAgrupados[h];
+        if (tipoSelecionado === "maquina") return v.neck_ring;
+        if (tipoSelecionado === "reserva") return v.neck_ring_reserva;
+        return v.neck_ring + v.neck_ring_reserva;
+      });
+
+      const funils = horasOrdenadas.map(h => {
+        const v = dadosAgrupados[h];
+        if (tipoSelecionado === "maquina") return v.funil;
+        if (tipoSelecionado === "reserva") return v.funil_reserva;
+        return v.funil + v.funil_reserva;
+      });
+
+      const tipoGraficoSelecionado = document.getElementById("tipoGrafico").value;
+
+      // Criar gráfico com 4 datasets (molde, blank, neckring, funil)
+      graficoLinha = new Chart(ctx, {
+        type: tipoGraficoSelecionado,
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: "Total Moldes",
+              data: moldes,
+              borderColor: "#29b8f4",
+              backgroundColor: "#66aef4",
+              tension: 0.3,
+              fill: false
+            },
+            {
+              label: "Total Blanks",
+              data: blanks,
+              borderColor: "#0f111d",
+              backgroundColor: "#272727",
+              tension: 0.3,
+              fill: false
+            },
+            {
+              label: "Total Neckrings",
+              data: neckrings,
+              borderColor: "#a3c1f4",
+              backgroundColor: "#c2c2c2",
+              tension: 0.3,
+              fill: false
+            },
+            {
+              label: "Total Funils",
+              data: funils,
+              borderColor: "#f59e0b",
+              backgroundColor: "#fcd34d",
+              tension: 0.3,
+              fill: false
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: true }
+          },
+          scales: {
+            x: { title: { display: true, text: "Hora" } },
+            y: { beginAtZero: true }
+          }
+        }
+      });
+    }
+
+    async function baixarPDF() {
+      const canvasEl = document.getElementById("graficoHistorico");
+      if (!canvasEl) {
+        alert("❌ Nenhum gráfico encontrado para exportar.");
+        return;
+      }
+
+      const canvasImagem = await html2canvas(canvasEl, {
+        backgroundColor: "#ffffff",
+        scale: 3
+      });
+
+      const imgData = canvasImagem.toDataURL("image/png");
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF();
+
+      pdf.setFontSize(16);
+      pdf.text("Histórico de Produção", 15, 20);
+      const largura = 180;
+      const altura = (canvasEl.height / canvasEl.width) * largura;
+      pdf.addImage(imgData, "PNG", 15, 30, largura, altura);
+
+      pdf.save("historico-producao.pdf");
+    }
+
+    /* 
+     * ================================================================
+     * Funções de Informações (mantidas)
+     * ================================================================
+     */
+    function abrirModalInformacoesMaquina(idMaquina) {
+      const dados = dadosMaquinas[idMaquina];
+      if (!dados) return;
+
+      const prefixo = dados.prefixo;
+      const info = dadosPrefixos.find(p => p.Prefixo === prefixo);
+
+      if (!info) {
+        alert("❌ Nenhuma informação encontrada para o prefixo " + prefixo);
+        return;
+      }
+
+      let infoHTML = `
+        <p><strong>Máquina:</strong> ${idMaquina}</p>
+        <p><strong>Prefixo:</strong> ${prefixo}</p>
+      `;
+
+      Object.entries(info).forEach(([chave, valor]) => {
+        if (chave !== "Prefixo") {
+          infoHTML += `<p><strong>${chave}:</strong> ${valor || "-"}</p>`;
+        }
+      });
+
+      document.getElementById("infoCampos").innerHTML = infoHTML;
+      document.getElementById("modalInfo").style.display = "flex";
+    }
+
+    function fecharModalInfo() {
+      document.getElementById("modalInfo").style.display = "none";
+    }
+
+    function salvarPrefixoMaquina(idMaquina, novoPrefixo) {
+      db.ref("maquinas/" + idMaquina + "/prefixo").set(novoPrefixo)
+        .then(() => {
+          console.log("Prefixo atualizado com sucesso");
+        })
+        .catch(err => {
+          console.error("Erro ao salvar prefixo:", err);
+        });
+    }
+
+    /* 
+     * ================================================================
+     * Event Listeners (mantidos)
+     * ================================================================
+     */
+    document.getElementById("senhaSplash").addEventListener("keydown", function (event) {
+      if (event.key === "Enter") {
+        verificarSenhaSplash();
+      }
+    });
+
+    document.getElementById("tipoGrafico").addEventListener("change", filtrarHistoricoHora);
+    document.getElementById("filtroTipoDado").addEventListener("change", filtrarHistoricoHora);
+
+    document.querySelector(".senha-wrapper svg").addEventListener("click", function() {
+      const input = document.getElementById("senhaSplash");
+      const olhoAberto = document.getElementById("olhoAberto");
+      const olhoFechado = document.getElementById("olhoFechado");
+      const pupila = document.getElementById("pupila");
+      
+      if (input.type === "password") {
+        input.type = "text";
+        olhoAberto.style.display = "inline";
+        olhoFechado.style.display = "none";
+        pupila.style.display = "inline";
+      } else {
+        input.type = "password";
+        olhoAberto.style.display = "none";
+        olhoFechado.style.display = "inline";
+        pupila.style.display = "none";
+      }
+    });
+
+    // Função para ajustar automaticamente o layout dos cards (mantida, mas não altera painelB3)
+    function ajustarLayoutCards() {
+      const painel = document.getElementById('painel');
+      const cards = document.querySelectorAll('.maquina');
+      const painelWidth = painel.clientWidth;
+      const cardWidth = 230; // Largura fixa dos cards (230px + 8px de gap)
+      const gap = 8;
+
+      // Calcular quantos cards cabem na largura disponível
+      const cardsPorLinha = Math.max(1, Math.floor(painelWidth / (cardWidth + gap)));
+
+      // Ajustar a altura do painel para caber todas as linhas
+      const numLinhas = Math.ceil(cards.length / cardsPorLinha);
+      const alturaNecessaria = numLinhas * (220 + gap) + 20; // altura card + gap + margem
+
+      painel.style.height = `${alturaNecessaria}px`;
+
+      // Ajustar conteudo minimo para não cortar o card B3 isolado
+      document.getElementById('conteudo').style.minHeight = `${alturaNecessaria + 200}px`;
+    }
+
+    window.addEventListener('resize', ajustarLayoutCards);
+
+    db.ref("maquinas").on("value", function(snapshot) {
+      setTimeout(ajustarLayoutCards, 100);
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+      setTimeout(ajustarLayoutCards, 500);
+    });
+  </script>
+</body>
+</html>
